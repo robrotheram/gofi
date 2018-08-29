@@ -1,0 +1,14 @@
+debug: false
+etcd:
+  - "http://192.168.0.125:2379"
+numberWorker: 4
+LogLevel: "info"
+LogOutput: "std"
+
+s3endpoint: "192.168.0.125:9000"
+s3access: "AWUKTP29LL2Y2PU9VS4D"
+s3secret: "rh95pKcfrX/okaQTnwA/gdnOAOsBF7Q4dRjprJJy"
+s3SSL: false
+s3BucketName: "articles"
+
+elastic: "192.168.0.125:9200"
