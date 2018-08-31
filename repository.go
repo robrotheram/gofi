@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/advancedlogic/GoOse"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/minio/minio-go"
+	"github.com/mmcdole/gofeed"
 	"github.com/olivere/elastic"
 	"github.com/shirou/gopsutil/load"
 	"github.com/sirupsen/logrus"
@@ -58,11 +60,13 @@ var (
 	ESclient    *elastic.Client
 	Settings    *SettingStore
 	downloads   = make(chan string, 100)
-	results     = make(chan string, 100)
 	TmpJobList  []Job
 	JobList     []Job
 	minioClient *minio.Client
 	Metrics     = Metric{}
+
+	GoFeedClient = gofeed.NewParser()
+	GooseClient = goose.New()
 )
 
 func (m *Metric) Update() {
@@ -70,7 +74,7 @@ func (m *Metric) Update() {
 	runtime.ReadMemStats(&met)
 	avg, _ := load.Avg()
 	m.NumJobs = len(JobList)
-	m.Mem = bToMb(met.TotalAlloc)
+	m.Mem = bToMb(met.Alloc)
 	m.Cpu = avg.Load1
 	m.Job = JobList
 }
@@ -143,22 +147,21 @@ func (s Job) print() {
 	}
 }
 
-func (j *Job) parseJob() {
+func (j Job) parseJob() {
 	j.Time = time.Now().Format("15:04:05")
 	j.ID = Settings.Hostname
 	switch jtype := j.Type; jtype {
 	case JOB_ARTICLE:
-		Logger.Info("Parsing Article")
 		a := ArticleJob{}
-		err := a.FromJob(*j)
+		err := a.FromJob(j)
 		if err != nil {
 			Logger.Error(err)
 			return
 		}
 		a.Process()
-		Metrics.JobsProcessed++
+		a.Clear()
+		//Metrics.JobsProcessed++
 	}
-
 }
 
 func putWithTimeout(key string, value string) error {
@@ -172,6 +175,7 @@ func putWithTimeout(key string, value string) error {
 
 func parseJobList(listStr []byte) {
 	Logger.Info("Parsing JobList")
+	TmpJobList = []Job{}
 	err := json.Unmarshal(listStr, &TmpJobList)
 	if err != nil {
 		Logger.Info(string(listStr))
@@ -231,8 +235,12 @@ func getNumberOfWorkers() (int, int, error) {
 			pos = i
 		}
 	}
+	len := len(resps.Kvs)
+	if(len >1){
+		len--
+	}
 	//ETCD_ROOT+"/"+ETCD_SERVICE is a null key ie directory of V2 or ZK!
-	return len(resps.Kvs) - 1, pos, nil
+	return len, pos, nil
 }
 
 func setupWatchers() {

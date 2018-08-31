@@ -215,9 +215,15 @@
 <script src="https://blackrockdigital.github.io/startbootstrap-bare/vendor/jquery/jquery.min.js"></script>
 <script src="https://blackrockdigital.github.io/startbootstrap-bare/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script>
+
+    if (window.location.search.indexOf('refresh=true') > -1) {
+        $('#switch-sm').prop('checked', true);
+    }
+
     setInterval(function(){
         if ($('#switch-sm').is(':checked')) {
-            location.reload();
+            console.log(window.location);
+            window.location.href = window.location.origin+"?refresh=true"
         }
     }, 10000);
 </script>

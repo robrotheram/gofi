@@ -11,8 +11,11 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"time"
+	_ "net/http/pprof"
+
 )
 
 var (
@@ -157,27 +160,29 @@ func main() {
 		os.Exit(1)
 	}()
 	for w := 1; w <= Settings.NumberOfworkers; w++ {
-		go downloadworker(w, downloads, results)
+		go downloadworker(downloads)
 	}
 
+
 	go func() {
-		for {
-			for i, _ := range JobList {
-				if i < len(JobList) {
-					job := &JobList[i]
-					job.parseJob()
-				}
-			}
-
-			Metrics.IP = getOutboundIP().String()
-			Metrics.Hostname = Settings.Hostname
-			Metrics.Update()
-
-			Logger.Info("WAITING! 60 sec")
-			//Logger.Info("URL Cache:", len(Cache.URL))
-			time.Sleep(time.Millisecond * time.Duration(10000))
-		}
+		setupServer()
 	}()
-	setupServer()
+
+	for {
+		for i, job := range JobList {
+			if i >= len(JobList) {
+				break;
+			}
+				job.parseJob()
+		}
+		runtime.GC()
+		Metrics.IP = getOutboundIP().String()
+		Metrics.Hostname = Settings.Hostname
+		Metrics.Update()
+		//Logger.Info("URL Cache:", len(Cache.URL))
+		time.Sleep(time.Millisecond * time.Duration(60000))
+	}
+
+
 
 }

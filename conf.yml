@@ -11,4 +11,4 @@ s3secret: "rh95pKcfrX/okaQTnwA/gdnOAOsBF7Q4dRjprJJy"
 s3SSL: false
 s3BucketName: "articles"
 
-elastic: "192.168.0.125:9200"
+elastic: "http://192.168.0.125:9200"

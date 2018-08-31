@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"crypto/md5"
-	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/advancedlogic/GoOse"
+	"runtime"
+
 	"github.com/minio/minio-go"
 	"github.com/mmcdole/gofeed"
 	"github.com/sirupsen/logrus"
@@ -45,10 +45,14 @@ func (s ArticleStruct) print() {
 type ArticleJob struct {
 	URL           string `json:url`
 	FeedTitle     string
-	CachedAricles []ArticleStruct
 	CachedUrl     []string
 	*gofeed.Item
 	Publisher string
+}
+
+func (c *ArticleJob) Clear() {
+	c = nil
+	runtime.GC()
 }
 
 func (c *ArticleJob) AppendURL(url string) {
@@ -72,11 +76,14 @@ func (c *ArticleJob) SetURL(url []string) {
 }
 
 func (c *ArticleJob) UpdateURL(url string) {
-	//Logger.Info("Updating....", url)
+	if(Settings.Debug){
+		Logger.Info("Updating....", url)
+	}
+
 	s := strings.Split(url, ",")
 	c.CachedUrl = s
 }
-func (c *ArticleJob) ConstainsUrl(url string) bool {
+func (c ArticleJob) ConstainsUrl(url string) bool {
 	for _, v := range c.CachedUrl {
 		if v == url {
 			return true
@@ -90,21 +97,21 @@ func (af *ArticleJob) FromJob(j Job) error {
 	return err
 }
 
-func (af *ArticleJob) Process() {
-	fp := gofeed.NewParser()
+func (af ArticleJob) Process() {
 	Logger.Info("Parsing URL:" + af.URL)
-	feed, err := fp.ParseURL(af.URL)
+	feed, err := GoFeedClient.ParseURL(af.URL)
+
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("%s has count %d \n", feed.Title, len(feed.Items))
+	if(Settings.Debug){
+		Logger.Info(fmt.Sprintf("%s has count %d \n", feed.Title, len(feed.Items)))
+	}
 	af.FeedTitle = feed.Title
 	af.getURLCache()
 
 	for _, v := range feed.Items {
-		h := sha1.New()
-		h.Write([]byte(v.Link))
 		if !af.ConstainsUrl(v.Link) {
 			fmt.Println("Aritical added: " + v.Link)
 			af.getArticles(v)
@@ -114,14 +121,16 @@ func (af *ArticleJob) Process() {
 
 }
 
-func (af *ArticleJob) getArticles(item *gofeed.Item) {
-	g := goose.New()
+func (af ArticleJob) getArticles(item *gofeed.Item) {
+	return
+
 	t := time.Now()
-	article, _ := g.ExtractFromURL(item.Link)
+	article, _ := GooseClient.ExtractFromURL(item.Link)
 
 	if article == nil {
 		return
 	}
+
 
 	sendToElastic(ArticleStruct{
 		af.FeedTitle,
@@ -137,9 +146,9 @@ func (af *ArticleJob) getArticles(item *gofeed.Item) {
 		t,
 	})
 
-	if article.TopImage != "" {
-		downloads <- article.TopImage
-	}
+	//if article.TopImage != "" {
+	//	downloads <- article.TopImage
+	//}
 
 	Logger.Info("URL Cache:", len(af.CachedUrl))
 }
@@ -150,28 +159,17 @@ func GetMD5Hash(text string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func downloadworker(id int, downloads <-chan string, results chan<- string) {
+func downloadworker(downloads <-chan string) {
 	for j := range downloads {
 		url := j
 		// don't worry about errors
+
+		// I think there is a memory leak issue here. Allocats 600mb of ram for a split second then dissapears  currently disabled
 		response, e := http.Get(url)
 		if e != nil {
 			return
 		}
-
-		defer response.Body.Close()
 		minioClient.PutObject(Settings.BucketName, (GetMD5Hash(j) + ".jpg"), response.Body, -1, minio.PutObjectOptions{ContentType: "image/jpg"})
-
-		//open a file for writing
-		//file, err := os.Create("tmp/"+GetMD5Hash(j)+".jpg")
-		//if err != nil {
-		//	return
-		//}
-		//// Use io.Copy to just dump the response body to the file. This supports huge files
-		//_, err = io.Copy(file, response.Body)
-		//if err != nil {
-		//	return
-		//}
-		//file.Close()
+		response.Body.Close()
 	}
 }

@@ -9,8 +9,7 @@ import (
 
 func createClient() {
 	var err error
-	ESclient, err = elastic.NewSimpleClient(elastic.SetURL("http://192.168.0.125:9200"))
-
+	ESclient, err = elastic.NewSimpleClient(elastic.SetURL(Settings.Elastic))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -21,7 +20,7 @@ func createClient() {
 }
 
 func sendToElastic(v ArticleStruct) {
-
+	return
 	ctx := context.Background()
 
 	bulkRequest := ESclient.Bulk()
