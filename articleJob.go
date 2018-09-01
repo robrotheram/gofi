@@ -13,7 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"reflect"
-	"strings"
 	"time"
 )
 
@@ -56,40 +55,48 @@ func (c *ArticleJob) Clear() {
 }
 
 func (c *ArticleJob) AppendURL(url string) {
-	c.CachedUrl = append(c.CachedUrl, url)
-	EClient.Put(context.Background(), ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle, strings.Join(c.CachedUrl[:], ","))
+	//c.CachedUrl = append(c.CachedUrl, url)
+	EClient.Put(context.Background(), ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle+"/"+url, url)
 }
 
 func (c *ArticleJob) getURLCache() {
-	resp, err := EClient.Get(context.Background(), ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle)
-	if err != nil {
-		return
-	}
-	if len(resp.Kvs) == 0 {
-		return
-	}
-	c.UpdateURL(string(resp.Kvs[0].Value))
+	return
+	//resp, err := EClient.Get(context.Background(), ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle)
+	//if err != nil {
+	//	return
+	//}
+	//if len(resp.Kvs) == 0 {
+	//	return
+	//}
+	//c.UpdateURL(string(resp.Kvs[0].Value))
 }
 
-func (c *ArticleJob) SetURL(url []string) {
-	c.CachedUrl = url
-}
+//func (c *ArticleJob) SetURL(url []string) {
+//	c.CachedUrl = url
+//}
 
-func (c *ArticleJob) UpdateURL(url string) {
-	if(Settings.Debug){
-		Logger.Info("Updating....", url)
-	}
+//func (c *ArticleJob) UpdateURL(url string) {
+//	if(Settings.Debug){
+//		Logger.Info("Updating....", url)
+//	}
+//
+//	s := strings.Split(url, ",")
+//	c.CachedUrl = s
+//}
 
-	s := strings.Split(url, ",")
-	c.CachedUrl = s
-}
 func (c ArticleJob) ConstainsUrl(url string) bool {
-	for _, v := range c.CachedUrl {
-		if v == url {
-			return true
-		}
+	//for _, v := range c.CachedUrl {
+	//	if v == url {
+	//		return true
+	//	}
+	//}
+	//return false
+
+	resp, err := EClient.Get(context.Background(), ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle+"/"+url)
+	if(err != nil){
+		return false
 	}
-	return false
+	return (len(resp.Kvs) != 0)
 }
 
 func (af *ArticleJob) FromJob(j Job) error {
