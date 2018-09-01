@@ -20,7 +20,6 @@ func createClient() {
 }
 
 func sendToElastic(v ArticleStruct) {
-	return
 	ctx := context.Background()
 
 	bulkRequest := ESclient.Bulk()
