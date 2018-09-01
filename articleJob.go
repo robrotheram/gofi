@@ -109,7 +109,7 @@ func (af ArticleJob) Process() {
 		Logger.Info(fmt.Sprintf("%s has count %d \n", feed.Title, len(feed.Items)))
 	}
 	af.FeedTitle = feed.Title
-	af.getURLCache()
+	//af.getURLCache()
 
 	for _, v := range feed.Items {
 		if !af.ConstainsUrl(v.Link) {
@@ -122,7 +122,7 @@ func (af ArticleJob) Process() {
 }
 
 func (af ArticleJob) getArticles(item *gofeed.Item) {
-	return
+	//return
 
 	t := time.Now()
 	article, _ := GooseClient.ExtractFromURL(item.Link)
