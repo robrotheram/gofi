@@ -56,6 +56,7 @@ func (c *ArticleJob) Clear() {
 
 func (c *ArticleJob) AppendURL(url string) {
 	//c.CachedUrl = append(c.CachedUrl, url)
+	Logger.Info( ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle+"/"+url)
 	EClient.Put(context.Background(), ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle+"/"+url, url)
 }
 
@@ -153,9 +154,9 @@ func (af ArticleJob) getArticles(item *gofeed.Item) {
 		t,
 	})
 
-	//if article.TopImage != "" {
-	//	downloads <- article.TopImage
-	//}
+	if article.TopImage != "" {
+		downloads <- article.TopImage
+	}
 
 	Logger.Info("URL Cache:", len(af.CachedUrl))
 }

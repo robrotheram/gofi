@@ -147,20 +147,20 @@ func (s Job) print() {
 	}
 }
 
-func (j Job) parseJob() {
+func (j *Job) parseJob() {
 	j.Time = time.Now().Format("15:04:05")
 	j.ID = Settings.Hostname
 	switch jtype := j.Type; jtype {
 	case JOB_ARTICLE:
 		a := ArticleJob{}
-		err := a.FromJob(j)
+		err := a.FromJob(*j)
 		if err != nil {
 			Logger.Error(err)
 			return
 		}
 		a.Process()
 		a.Clear()
-		//Metrics.JobsProcessed++
+		Metrics.JobsProcessed++
 	}
 }
 
