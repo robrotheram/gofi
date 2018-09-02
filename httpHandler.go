@@ -33,8 +33,12 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 			m := Metric{}
 			err := json.Unmarshal((v.Value), &m)
 			if err == nil {
+				Logger.Info(m)
 				HomePageVars.Service = append(HomePageVars.Service, m)
-				HomePageVars.Jobs = append(HomePageVars.Jobs, m.Job...)
+				for _, v := range m.Job {
+					v.ID = m.Hostname
+					HomePageVars.Jobs = append(HomePageVars.Jobs, v)
+				}
 			}
 		}
 	}

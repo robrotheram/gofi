@@ -16,7 +16,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type SettingStore struct {
@@ -73,6 +72,7 @@ func (m *Metric) Update() {
 	var met runtime.MemStats
 	runtime.ReadMemStats(&met)
 	avg, _ := load.Avg()
+	m.Hostname = Settings.Hostname
 	m.NumJobs = len(JobList)
 	m.Mem = bToMb(met.Alloc)
 	m.Cpu = avg.Load1
@@ -147,13 +147,11 @@ func (s Job) print() {
 	}
 }
 
-func (j *Job) parseJob() {
-	j.Time = time.Now().Format("15:04:05")
-	j.ID = Settings.Hostname
+func (j Job) parseJob() {
 	switch jtype := j.Type; jtype {
 	case JOB_ARTICLE:
 		a := ArticleJob{}
-		err := a.FromJob(*j)
+		err := a.FromJob(j)
 		if err != nil {
 			Logger.Error(err)
 			return

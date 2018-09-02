@@ -94,7 +94,7 @@ func setUpTimeTimer(m *Metric) {
 				log.Fatal(err)
 			}
 			//hostname, err := os.Hostname();
-
+			m.Update()
 			_, err = EClient.Put(context.Background(), ETCD_ROOT+"/"+ETCD_SERVICE+"/"+Settings.Hostname, m.ToString(), clientv3.WithLease(resp.ID))
 			if err != nil {
 				log.Fatal(err)
@@ -174,12 +174,9 @@ func main() {
 				break;
 			}
 				job.parseJob()
+
 		}
 		runtime.GC()
-		Metrics.IP = getOutboundIP().String()
-		Metrics.Hostname = Settings.Hostname
-		Metrics.Update()
-		//Logger.Info("URL Cache:", len(Cache.URL))
 		time.Sleep(time.Millisecond * time.Duration(60000))
 	}
 
