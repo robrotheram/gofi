@@ -6,13 +6,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"runtime"
-
 	"github.com/minio/minio-go"
 	"github.com/mmcdole/gofeed"
 	"github.com/sirupsen/logrus"
+	"io"
 	"net/http"
+	"os"
 	"reflect"
+	"runtime"
 	"time"
 )
 
@@ -42,9 +43,9 @@ func (s ArticleStruct) print() {
 }
 
 type ArticleJob struct {
-	URL           string `json:url`
-	FeedTitle     string
-	CachedUrl     []string
+	URL       string `json:url`
+	FeedTitle string
+	CachedUrl []string
 	*gofeed.Item
 	Publisher string
 }
@@ -55,46 +56,13 @@ func (c *ArticleJob) Clear() {
 }
 
 func (c *ArticleJob) AppendURL(url string) {
-	//c.CachedUrl = append(c.CachedUrl, url)
-	Logger.Info( ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle+"/"+url)
+	Logger.Info(ETCD_ROOT + "/" + ETCD_URL + "/" + c.FeedTitle + "/" + url)
 	EClient.Put(context.Background(), ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle+"/"+url, url)
 }
 
-func (c *ArticleJob) getURLCache() {
-	return
-	//resp, err := EClient.Get(context.Background(), ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle)
-	//if err != nil {
-	//	return
-	//}
-	//if len(resp.Kvs) == 0 {
-	//	return
-	//}
-	//c.UpdateURL(string(resp.Kvs[0].Value))
-}
-
-//func (c *ArticleJob) SetURL(url []string) {
-//	c.CachedUrl = url
-//}
-
-//func (c *ArticleJob) UpdateURL(url string) {
-//	if(Settings.Debug){
-//		Logger.Info("Updating....", url)
-//	}
-//
-//	s := strings.Split(url, ",")
-//	c.CachedUrl = s
-//}
-
 func (c ArticleJob) ConstainsUrl(url string) bool {
-	//for _, v := range c.CachedUrl {
-	//	if v == url {
-	//		return true
-	//	}
-	//}
-	//return false
-
 	resp, err := EClient.Get(context.Background(), ETCD_ROOT+"/"+ETCD_URL+"/"+c.FeedTitle+"/"+url)
-	if(err != nil){
+	if err != nil {
 		return false
 	}
 	return (len(resp.Kvs) != 0)
@@ -105,7 +73,7 @@ func (af *ArticleJob) FromJob(j Job) error {
 	return err
 }
 
-func (af ArticleJob) Process() {
+func (af *ArticleJob) Process() {
 	Logger.Info("Parsing URL:" + af.URL)
 	feed, err := GoFeedClient.ParseURL(af.URL)
 
@@ -113,11 +81,10 @@ func (af ArticleJob) Process() {
 		fmt.Println(err)
 		return
 	}
-	if(Settings.Debug){
+	if Settings.Debug {
 		Logger.Info(fmt.Sprintf("%s has count %d \n", feed.Title, len(feed.Items)))
 	}
 	af.FeedTitle = feed.Title
-	//af.getURLCache()
 
 	for _, v := range feed.Items {
 		if !af.ConstainsUrl(v.Link) {
@@ -130,15 +97,12 @@ func (af ArticleJob) Process() {
 }
 
 func (af ArticleJob) getArticles(item *gofeed.Item) {
-	//return
-
 	t := time.Now()
 	article, _ := GooseClient.ExtractFromURL(item.Link)
 
 	if article == nil {
 		return
 	}
-
 
 	sendToElastic(ArticleStruct{
 		af.FeedTitle,
@@ -147,7 +111,7 @@ func (af ArticleJob) getArticles(item *gofeed.Item) {
 		article.MetaDescription,
 		article.TopImage,
 		GetMD5Hash(article.TopImage),
-		"http://" + Settings.Endpoint + "/minio/download/" + Settings.BucketName + "/" + (GetMD5Hash(article.TopImage) + ".jpg") + "?token=%27%27",
+		"http://" + Settings.Endpoint + "/minio/download/" + Settings.BucketName + "/" + (GetMD5Hash(article.TopImage)) + "?token=%27%27",
 		article.FinalURL,
 		article.MetaKeywords,
 		t,
@@ -169,15 +133,25 @@ func GetMD5Hash(text string) string {
 
 func downloadworker(downloads <-chan string) {
 	for j := range downloads {
-		url := j
-		// don't worry about errors
-
-		// I think there is a memory leak issue here. Allocats 600mb of ram for a split second then dissapears  currently disabled
-		response, e := http.Get(url)
+		response, e := http.Get(j)
 		if e != nil {
-			return
+			Logger.Error(e)
 		}
-		minioClient.PutObject(Settings.BucketName, (GetMD5Hash(j) + ".jpg"), response.Body, -1, minio.PutObjectOptions{ContentType: "image/jpg"})
-		response.Body.Close()
+		defer response.Body.Close()
+		contentType := response.Header.Get("Content-Type")
+		file, err := os.Create("/tmp/tmp.cache")
+		if err != nil {
+			Logger.Error(err)
+		}
+		_, err = io.Copy(file, response.Body)
+		if err != nil {
+			Logger.Error(err)
+		}
+		file.Close()
+		_, err = minioClient.FPutObject(Settings.BucketName, (GetMD5Hash(j)), "/tmp/tmp.cache", minio.PutObjectOptions{ContentType: contentType})
+		if err != nil {
+			Logger.Error(err)
+		}
+
 	}
 }

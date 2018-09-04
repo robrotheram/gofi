@@ -55,17 +55,16 @@ type Metric struct {
 }
 
 var (
-	EClient     *clientv3.Client
-	ESclient    *elastic.Client
-	Settings    *SettingStore
-	downloads   = make(chan string, 100)
-	TmpJobList  []Job
-	JobList     []Job
-	minioClient *minio.Client
-	Metrics     = Metric{}
-
+	EClient      *clientv3.Client
+	ESclient     *elastic.Client
+	Settings     *SettingStore
+	downloads    = make(chan string, 100)
+	TmpJobList   []Job
+	JobList      []Job
+	minioClient  *minio.Client
+	Metrics      = Metric{}
 	GoFeedClient = gofeed.NewParser()
-	GooseClient = goose.New()
+	GooseClient  = goose.New()
 )
 
 func (m *Metric) Update() {
@@ -158,7 +157,6 @@ func (j Job) parseJob() {
 		}
 		a.Process()
 		a.Clear()
-		Metrics.JobsProcessed++
 	}
 }
 
@@ -234,7 +232,7 @@ func getNumberOfWorkers() (int, int, error) {
 		}
 	}
 	len := len(resps.Kvs)
-	if(len >1){
+	if len > 1 {
 		len--
 	}
 	//ETCD_ROOT+"/"+ETCD_SERVICE is a null key ie directory of V2 or ZK!

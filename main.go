@@ -9,13 +9,12 @@ import (
 	"log"
 	"math/rand"
 	"net"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"runtime"
 	"strings"
 	"time"
-	_ "net/http/pprof"
-
 )
 
 var (
@@ -86,22 +85,16 @@ func bToMb(b uint64) uint64 {
 	return b / 1024 / 1024
 }
 
-func setUpTimeTimer(m *Metric) {
-	go func() {
-		for {
-			resp, err := EClient.Grant(context.Background(), 60)
-			if err != nil {
-				log.Fatal(err)
-			}
-			//hostname, err := os.Hostname();
-			m.Update()
-			_, err = EClient.Put(context.Background(), ETCD_ROOT+"/"+ETCD_SERVICE+"/"+Settings.Hostname, m.ToString(), clientv3.WithLease(resp.ID))
-			if err != nil {
-				log.Fatal(err)
-			}
-			time.Sleep(60 * time.Second)
-		}
-	}()
+func updateSettings() {
+	resp, err := EClient.Grant(context.Background(), 60)
+	if err != nil {
+		log.Fatal(err)
+	}
+	Metrics.Update()
+	_, err = EClient.Put(context.Background(), ETCD_ROOT+"/"+ETCD_SERVICE+"/"+Settings.Hostname, Metrics.ToString(), clientv3.WithLease(resp.ID))
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func printKeys() {
@@ -141,10 +134,11 @@ func main() {
 		log.Fatalln(err)
 	}
 	minioClient = mc
+	Metrics.Update()
 	createBuket()
 	createClient()
+	updateSettings()
 
-	setUpTimeTimer(&Metrics)
 	time.Sleep(2 * time.Second)
 	setupWatchers()
 
@@ -159,10 +153,8 @@ func main() {
 		EClient.Delete(context.Background(), ETCD_ROOT+"/"+ETCD_SERVICE+"/"+Settings.Hostname, clientv3.WithPrefix())
 		os.Exit(1)
 	}()
-	for w := 1; w <= Settings.NumberOfworkers; w++ {
-		go downloadworker(downloads)
-	}
 
+	go downloadworker(downloads)
 
 	go func() {
 		setupServer()
@@ -171,15 +163,15 @@ func main() {
 	for {
 		for i, job := range JobList {
 			if i >= len(JobList) {
-				break;
+				break
 			}
-				job.parseJob()
+			job.parseJob()
 
 		}
+
 		runtime.GC()
+		updateSettings()
 		time.Sleep(time.Millisecond * time.Duration(60000))
 	}
-
-
 
 }
