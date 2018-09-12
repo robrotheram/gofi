@@ -1,4 +1,4 @@
-package main
+package settings
 
 //Log LEVELS
 const (
@@ -35,6 +35,7 @@ const (
 //Job Types
 const (
 	JOB_ARTICLE = "ARTICLE"
+	JOB_TWITTER = "TWITTER"
 )
 
 //minio

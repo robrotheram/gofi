@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/go-yaml/yaml"
+	"injester_test/settings"
 	"io/ioutil"
 	"os"
 )
@@ -22,8 +23,8 @@ func getFromFile() {
 }
 
 func getFromEnviroment() {
-	Settings.SetETCDString(os.Getenv(CONFIG_ETCD))
-	Settings.SetNumberOfworkers(os.Getenv(CONFIG_WORKERS))
-	Settings.SetLogLevel(os.Getenv(CONFIG_LOG_LEVEL))
-	Settings.setLogOutut(os.Getenv(CONFIG_LOG_OUTPUT))
+	Settings.SetETCDString(os.Getenv(settings.CONFIG_ETCD))
+	Settings.SetNumberOfworkers(os.Getenv(settings.CONFIG_WORKERS))
+	Settings.SetLogLevel(os.Getenv(settings.CONFIG_LOG_LEVEL))
+	Settings.SetLogOutut(os.Getenv(settings.CONFIG_LOG_OUTPUT))
 }

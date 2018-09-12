@@ -1,8 +1,8 @@
-debug: false
+debug: true
 etcd:
   - "http://192.168.0.125:2379"
 numberWorker: 4
-LogLevel: "info"
+LogLevel: "error"
 LogOutput: "std"
 
 s3endpoint: "192.168.0.125:9000"
