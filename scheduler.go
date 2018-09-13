@@ -21,6 +21,7 @@ var (
 	//CoreList		[]
 	JobList       []jobs.Job
 	CachedJobList []jobs.JobJson
+	TmpJobList    []jobs.JobJson
 	CachedList    []byte
 	CachedWorkers int
 	Ctx           context.Context
@@ -75,11 +76,12 @@ func RunCoreJob(job jobs.Job) {
 
 func StartJobs() {
 	Logger.Info("STARTING ALL JOBS")
+	Metrics.Update()
+	Metrics.NumJobs = len(JobList)
 	JobCtx, JobCancel = context.WithCancel(context.Background())
 	JobWG = sync.WaitGroup{}
-
 	for _, job := range JobList {
-		Logger.Info("Starting Job")
+		Logger.Info("Starting Job: ")
 		JobWG.Add(1)
 		job.Init(EClient, Logger, Settings, &Downloads, &Output)
 		go job.Run(JobCtx, &JobWG)
@@ -101,12 +103,12 @@ func parseJobList(listStr []byte) {
 	Logger.Info("Parsing JobList:")
 	CachedList = listStr
 
-	CachedJobList = []jobs.JobJson{}
-	err := json.Unmarshal(listStr, &CachedJobList)
+	TmpJobList = []jobs.JobJson{}
+	err := json.Unmarshal(listStr, &TmpJobList)
 	if err != nil {
 		Logger.Info(string(listStr))
 		Logger.Error(err)
-		CachedJobList = []jobs.JobJson{}
+		TmpJobList = []jobs.JobJson{}
 		return
 	}
 	SetupJobs()
@@ -114,24 +116,24 @@ func parseJobList(listStr []byte) {
 
 func SetupJobs() {
 
-	if len(CachedJobList) < 1 {
+	if len(TmpJobList) < 1 {
 		return
 	}
 	var divided [][]jobs.JobJson
 	numberofWorkers, position, _ := GetNumberOfWorkers()
-	chunkSize := (len(CachedJobList)) / (numberofWorkers)
-	check := (len(CachedJobList)) % (numberofWorkers)
+	chunkSize := (len(TmpJobList)) / (numberofWorkers)
+	check := (len(TmpJobList)) % (numberofWorkers)
 	if check != 0 {
 		chunkSize++
 	}
-	Logger.Info(fmt.Sprintf("There are %d workers, You are worker %d, ChunkSize: %d, Lenght: %d", numberofWorkers, position+1, chunkSize, len(CachedJobList)))
+	Logger.Info(fmt.Sprintf("There are %d workers, You are worker %d, ChunkSize: %d, Lenght: %d", numberofWorkers, position+1, chunkSize, len(TmpJobList)))
 
-	for i := 0; i < len(CachedJobList); i += chunkSize {
+	for i := 0; i < len(TmpJobList); i += chunkSize {
 		end := i + chunkSize
-		if end > len(CachedJobList) {
-			end = len(CachedJobList)
+		if end > len(TmpJobList) {
+			end = len(TmpJobList)
 		}
-		divided = append(divided, CachedJobList[i:end])
+		divided = append(divided, TmpJobList[i:end])
 	}
 
 	if CachedWorkers == numberofWorkers {
@@ -154,6 +156,7 @@ func SetupJobs() {
 			JobList = append(JobList, jobs.TweetJob{}.New(jobjson))
 		}
 	}
+	Metrics.Jobs = CachedJobList
 	StartJobs()
 }
 

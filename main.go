@@ -18,7 +18,7 @@ var (
 	ESclient  *elastic.Client
 	Settings  *settings.SettingStore
 	Logger    *logrus.Logger
-	Metrics   *settings.Metric
+	Metrics   *jobs.Metric
 	Downloads = make(chan string, 100)
 	Output    = make(chan jobs.Model, 100)
 )
@@ -26,7 +26,6 @@ var (
 func init() {
 	rand.Seed(time.Now().UnixNano())
 	Settings = new(settings.SettingStore)
-	Metrics = new(settings.Metric)
 
 	//	Logger.Info("Attempting to load config from file")
 	getFromFile()
@@ -41,6 +40,7 @@ func init() {
 		Settings.SetHostname(hostname)
 	}
 
+	Metrics = jobs.Metric{}.New(Settings.Hostname)
 	Settings.Print(Logger)
 	Logger.Info("=========================================== ")
 
@@ -48,7 +48,7 @@ func init() {
 
 func main() {
 	InitScheduler()
-	RunCoreJob(ServiceJob{}.New())
+	RunCoreJob(ServiceJob{}.New(Metrics))
 	RunCoreJob(WatcherJob{}.New())
 	RunCoreJob(DownloadJob{}.New())
 	RunCoreJob(ElasticJob{}.New())

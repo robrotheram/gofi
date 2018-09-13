@@ -26,6 +26,7 @@ type TweetJob struct {
 	Output    *chan Model
 
 	Logger *logrus.Logger
+	Count  int
 }
 
 type TwitterStruct struct {
@@ -74,6 +75,10 @@ func (a *TweetJob) Init(ectd *clientv3.Client, log *logrus.Logger, settings *set
 	log.Info("JOB: " + a.Name + " Created")
 }
 
+func (job *TweetJob) GetCount() int {
+	return job.Count
+}
+
 func (a *TweetJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 	// tell the caller we've stopped
 	defer wg.Done()
@@ -83,6 +88,7 @@ func (a *TweetJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 	client := twitter.NewClient(httpClient)
 	demux := twitter.NewSwitchDemux()
 	demux.Tweet = func(tweet *twitter.Tweet) {
+		a.Count++
 		*a.Output <- TwitterStruct{tweet, time.Now()}
 	}
 	a.Logger.Info("Starting Stream...")

@@ -13,9 +13,9 @@ import (
 
 type PageVariables struct {
 	Jobs    []jobs.JobJson
-	Metric  *settings.Metric
+	Metric  *jobs.Metric
 	Time    string
-	Service []settings.Metric
+	Service []jobs.Metric
 }
 
 func setupServer() {
@@ -33,20 +33,19 @@ func HomePage(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	} else {
 		for _, v := range resps.Kvs {
-			m := settings.Metric{}
+			m := jobs.Metric{}
 			err := json.Unmarshal((v.Value), &m)
 			if err == nil {
-
 				HomePageVars.Service = append(HomePageVars.Service, m)
-				//for _, v := range m.Job {
-				//	v.ID = m.Hostname
-				//	HomePageVars.Jobs = append(HomePageVars.Jobs, v)
-				//}
+				for _, v := range m.Jobs {
+					v.ID = m.Hostname
+					v.Time = m.Time.Format("2006-01-02 15:04:05")
+					HomePageVars.Jobs = append(HomePageVars.Jobs, v)
+				}
 			}
 		}
 	}
 
-	Metrics.Update(Settings)
 	HomePageVars.Metric = Metrics
 
 	t, err := template.ParseFiles("templates/index.html") //parse the html file homepage.html

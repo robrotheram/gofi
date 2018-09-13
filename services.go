@@ -22,27 +22,44 @@ import (
 )
 
 type ServiceJob struct {
-	Name string
+	Name   string
+	Metric *jobs.Metric
+	Count  int
 }
 
-func (s ServiceJob) New() *ServiceJob {
+func (s ServiceJob) New(metric *jobs.Metric) *ServiceJob {
 	s.Name = "Service Status"
+	s.Metric = metric
 	return &s
+}
+
+func (s ServiceJob) GetCount() int {
+	return s.Count
 }
 
 func (c *ServiceJob) Init(ectd *clientv3.Client, log *logrus.Logger, settings *settings.SettingStore, downloads *chan string, out *chan jobs.Model) {
 	Logger.Info(fmt.Sprintf("job: %s Is Initiation", c.Name))
 	c.updateETCD()
+	c.UpdatedMetrics()
 }
 func (c *ServiceJob) Stop() {}
+
+func (c *ServiceJob) UpdatedMetrics() {
+	c.Metric.Update()
+
+	for _, job := range JobList {
+		c.Metric.JobsProcessed += job.GetCount()
+	}
+
+}
 
 func (c *ServiceJob) updateETCD() {
 	resp, err := EClient.Grant(context.Background(), 60)
 	if err != nil {
 		log.Fatal(err)
 	}
-	Metrics.Update(Settings)
-	_, err = EClient.Put(context.Background(), settings.ETCD_ROOT+"/"+settings.ETCD_SERVICE+"/"+Settings.Hostname, Metrics.ToString(), clientv3.WithLease(resp.ID))
+	c.UpdatedMetrics()
+	_, err = EClient.Put(context.Background(), settings.ETCD_ROOT+"/"+settings.ETCD_SERVICE+"/"+Settings.Hostname, c.Metric.ToString(), clientv3.WithLease(resp.ID))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,7 +68,7 @@ func (c *ServiceJob) updateETCD() {
 func (c *ServiceJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 	// tell the caller we've stopped
 	defer wg.Done()
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 	Logger.Info(fmt.Sprintf("job: %s Is Starting", c.Name))
 	for {
@@ -59,6 +76,7 @@ func (c *ServiceJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 		case now := <-ticker.C:
 			Logger.Info(fmt.Sprintf("%s processing at %s", c.Name, now.UTC().Format("2006-01-02 15:04:05-07:00")))
 			c.updateETCD()
+			c.Count++
 		case <-ctx.Done():
 			Logger.Info(fmt.Sprintf("%s: Stopping...", c.Name))
 			return
@@ -72,7 +90,12 @@ func (w WatcherJob) New() *WatcherJob {
 }
 
 type WatcherJob struct {
-	Name string
+	Name  string
+	Count int
+}
+
+func (s WatcherJob) GetCount() int {
+	return s.Count
 }
 
 func (c *WatcherJob) Init(ectd *clientv3.Client, log *logrus.Logger, set *settings.SettingStore, downloads *chan string, out *chan jobs.Model) {
@@ -119,11 +142,16 @@ func (c *WatcherJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 type DownloadJob struct {
 	Name        string
 	minioClient *minio.Client
+	Count       int
 }
 
 func (w DownloadJob) New() *DownloadJob {
 	w.Name = "Download Job"
 	return &w
+}
+
+func (s DownloadJob) GetCount() int {
+	return s.Count
 }
 
 func (c *DownloadJob) Init(ectd *clientv3.Client, log *logrus.Logger, set *settings.SettingStore, downloads *chan string, out *chan jobs.Model) {
@@ -161,6 +189,7 @@ func (c *DownloadJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case j := <-Downloads:
+			c.Count++
 			response, e := http.Get(j)
 			if e != nil {
 				Logger.Error(e)
@@ -193,11 +222,16 @@ func (c *DownloadJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 type ElasticJob struct {
 	Name     string
 	ESclient *elastic.Client
+	Count    int
 }
 
 func (w ElasticJob) New() *ElasticJob {
 	w.Name = "Elastic Job"
 	return &w
+}
+
+func (s ElasticJob) GetCount() int {
+	return s.Count
 }
 
 func (c *ElasticJob) Init(ectd *clientv3.Client, log *logrus.Logger, set *settings.SettingStore, downloads *chan string, out *chan jobs.Model) {
@@ -217,6 +251,7 @@ func (c *ElasticJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case j := <-Output:
+			c.Count++
 			ctx := context.Background()
 			bulkRequest := c.ESclient.Bulk()
 			u2, err := uuid.NewV4()

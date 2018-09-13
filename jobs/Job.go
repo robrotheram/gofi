@@ -6,12 +6,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"injester_test/settings"
 	"sync"
-	"time"
 )
 
 type Job interface {
 	Init(*clientv3.Client, *logrus.Logger, *settings.SettingStore, *chan string, *chan Model)
 	Run(context.Context, *sync.WaitGroup)
+	GetCount() int
 }
 
 type Model interface {
@@ -19,11 +19,11 @@ type Model interface {
 }
 
 type JobJson struct {
-	ID     string    `json:"id"`
-	Name   string    `json:"name"`
-	Type   string    `json:"type"`
-	Params string    `json:"parmas"`
-	Time   time.Time `json:"time,string"`
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Type   string `json:"type"`
+	Params string `json:"parmas"`
+	Time   string `json:"time,string"`
 }
 
 func (j JobJson) New() JobJson {

@@ -22,6 +22,7 @@ type ArticleJob struct {
 	FeedTitle string
 	Publisher string
 	CachedUrl []string
+	Count     int
 
 	Setting      *settings.SettingStore
 	EClient      *clientv3.Client
@@ -65,6 +66,10 @@ func (a ArticleJob) New(j JobJson) *ArticleJob {
 	}
 
 	return &a
+}
+
+func (s ArticleJob) GetCount() int {
+	return s.Count
 }
 
 func (a *ArticleJob) Init(ectd *clientv3.Client, log *logrus.Logger, settings *settings.SettingStore, downloads *chan string, out *chan Model) {
@@ -141,6 +146,7 @@ func (job *ArticleJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case now := <-ticker.C:
+			job.Count++
 			job.Logger.Info(fmt.Sprintf("%s processing at %s \n", job.Name, now.UTC().Format("2006-01-02 15:04:05-07:00")))
 			feed, err := job.GoFeedClient.ParseURL(job.URL)
 
