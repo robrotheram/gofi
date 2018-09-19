@@ -72,6 +72,11 @@ func (s ArticleJob) GetCount() int {
 	return s.Count
 }
 
+/* returns a list of strings of paramaters keys */
+func (a ArticleJob) GetParams() JobParams {
+	return JobParams{"ARTICLE", []string{"url"}}
+}
+
 func (a *ArticleJob) Init(ectd *clientv3.Client, log *logrus.Logger, settings *settings.SettingStore, downloads *chan string, out *chan Model) {
 	a.EClient = ectd
 	a.Logger = log

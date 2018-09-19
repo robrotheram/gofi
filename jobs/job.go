@@ -26,6 +26,18 @@ type JobJson struct {
 	Time   string `json:"time"`
 }
 
+type JobParams struct {
+	Type   string   `json:"type"`
+	Params []string `json:"params"`
+}
+
 func (j JobJson) New() JobJson {
 	return j
+}
+
+func JobsSettings() []JobParams {
+	return []JobParams{
+		TweetJob{}.GetParams(),
+		ArticleJob{}.GetParams(),
+	}
 }

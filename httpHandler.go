@@ -17,17 +17,21 @@ import (
 )
 
 type PageVariables struct {
-	Jobs    []jobs.JobJson
-	Metric  *jobs.Metric
-	Time    string
-	Service []jobs.Metric
+	Jobs      []jobs.JobJson
+	Metric    *jobs.Metric
+	Time      string
+	Service   []jobs.Metric
+	JobParmas []jobs.JobParams
 }
+
+var HomePageVars = PageVariables{JobParmas: jobs.JobsSettings()}
 
 func setupServer() {
 	BuildUI()
 	fs := http.FileServer(http.Dir("public"))
 
 	http.HandleFunc("/data", HomePage)
+	http.HandleFunc("/settings", GetSettings)
 	http.Handle("/", fs)
 	Logger.Info("http://localhost:8083" +
 		"")
@@ -35,7 +39,6 @@ func setupServer() {
 }
 
 func getData(w http.ResponseWriter, r *http.Request) {
-	HomePageVars := PageVariables{}
 	HomePageVars.Metric = Metrics
 	HomePageVars.Jobs = TmpJobList
 
@@ -110,7 +113,6 @@ func deleteJob(w http.ResponseWriter, r *http.Request) {
 			jobList = append(jobList, j)
 		}
 	}
-	fmt.Println(jobList)
 	json, err := json.Marshal(jobList)
 	_, err = EClient.Put(context.Background(), settings.ETCD_ROOT+"/"+settings.ETCD_JOB_LIST, string(json))
 
@@ -121,6 +123,16 @@ func deleteJob(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte("success"))
 	}
+}
+
+func GetSettings(w http.ResponseWriter, r *http.Request) {
+	js, err := json.Marshal(jobs.JobsSettings())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }
 
 func HomePage(w http.ResponseWriter, r *http.Request) {

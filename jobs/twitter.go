@@ -16,6 +16,7 @@ import (
 )
 
 type TweetJob struct {
+	Name string
 	JobJson
 	TSearch     string `json:"search"`
 	SearchParam []string
@@ -38,6 +39,11 @@ type TwitterStruct struct {
 
 func (t TwitterStruct) Type() string {
 	return "twitter"
+}
+
+/* returns a list of strings of paramaters keys */
+func (j TweetJob) GetParams() JobParams {
+	return JobParams{"TWITTER", []string{"search"}}
 }
 
 func (j TweetJob) New(jb JobJson) *TweetJob {
@@ -77,7 +83,6 @@ func (a *TweetJob) Init(ectd *clientv3.Client, log *logrus.Logger, settings *set
 		Track:         a.SearchParam, //[]string{"cat","dog","rabbit"},
 		StallWarnings: twitter.Bool(true),
 	}
-	fmt.Println(a.TSearch)
 	log.Info("JOB: " + a.Name + " Created")
 }
 

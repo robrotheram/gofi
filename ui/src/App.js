@@ -5,21 +5,6 @@ import axios from "axios";
 import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from "recharts";
 import ResponsiveContainer from "recharts/es6/component/ResponsiveContainer";
 
-const MODEL = {
-    ARTICLE:[
-        "url"
-    ],
-    TWITTER:[
-        "search"
-    ]
-}
-
-
-
-
-
-
-
 class CPULineChart extends Component {
     render () {
         var current = 0;
@@ -105,6 +90,18 @@ class JobForm extends Component{
         parmas:{}
     }
 
+    getParams(type){
+        let p = [];
+        this.props.params.forEach(function(element) {
+            console.log(element.type, type);
+            if(element.type === type){
+                console.log(element.params, type);
+                p = element.params;
+            }
+        });
+        return p;
+    }
+
     constructor(){
         super()
         //this.state.type = this.props.options[0]
@@ -112,8 +109,9 @@ class JobForm extends Component{
     componentDidMount() {
         this.setState({
             type:this.props.options[0],
-            model:MODEL[this.props.options[0]]
+            model:this.getParams(this.props.options[0])
         })
+        console.log("hello",this.props.options, this.props.params, this.state)
     }
 
     inputChangeHandler = (event) => {
@@ -128,7 +126,7 @@ class JobForm extends Component{
             });
 
             this.setState({
-                model:MODEL[event.target.value],
+                model:this.getParams(event.target.value),
             });
 
         }else{
@@ -171,7 +169,7 @@ class JobForm extends Component{
             name:"",
         });
         this.setState({
-            model:MODEL[this.props.options[0]]
+            model:this.getParams(this.props.options[0])
         });
 
         this.props.cancel()
@@ -213,16 +211,13 @@ class JobForm extends Component{
 
 class App extends Component {
     state = {
-        options: [
-            "ARTICLE",
-            "TWITTER",
-        ],
+        options: [],
+        params:{},
         jobs:[],
         worker:"",
         metrics: [],
         toggledisplay: false
     }
-
 
     toggle = ()=>{
        this.setState({toggledisplay:!this.state.toggledisplay})
@@ -239,10 +234,20 @@ class App extends Component {
                     that.state.metrics.shift()
                 }
                 metric.time = new Date().toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1");
+
+                let options = [];
+                response.data.JobParmas.forEach(function(element) {
+                    options.push(element.type)
+                });
+
+
+
                 that.setState({
                     "jobs":response.data.Jobs,
                     "metrics":  [...that.state.metrics, metric],
                     "worker": metric.Hostname,
+                    "params":  response.data.JobParmas,
+                    "options": options,
                     "services":response.data.Service,
                 })
                 console.log(that.state);
@@ -309,7 +314,7 @@ class App extends Component {
                     </table>
 
                     <hr className="uk-divider-icon"/>
-                    {this.state.toggledisplay && <JobForm options={this.state.options} cancel={this.toggle.bind(this)}/>}
+                    {this.state.toggledisplay && <JobForm params={this.state.params} options={this.state.options} cancel={this.toggle.bind(this)}/>}
 
                     <div>
                         <button className="uk-button uk-button-primary" onClick={this.toggle.bind(this)} style={{"float":"right"}}>Create Job</button>
