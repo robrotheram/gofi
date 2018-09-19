@@ -161,6 +161,7 @@ func (job *ArticleJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 			for _, v := range feed.Items {
 				if !job.ConstainsUrl(v.Link) {
 					job.Logger.Info("Aritical added: " + v.Link)
+					job.Count++
 					job.getArticles(v)
 					job.AppendURL(v.Link)
 				}

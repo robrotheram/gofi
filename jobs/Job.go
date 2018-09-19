@@ -23,7 +23,7 @@ type JobJson struct {
 	Name   string `json:"name"`
 	Type   string `json:"type"`
 	Params string `json:"parmas"`
-	Time   string `json:"time,string"`
+	Time   string `json:"time"`
 }
 
 func (j JobJson) New() JobJson {

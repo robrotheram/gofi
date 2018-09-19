@@ -10,13 +10,15 @@ import (
 	"github.com/sirupsen/logrus"
 	"injester_test/settings"
 	"log"
+	"strings"
 	"sync"
 	"time"
 )
 
 type TweetJob struct {
 	JobJson
-	TSearch []string `json:"search"`
+	TSearch     string `json:"search"`
+	SearchParam []string
 
 	Client       *twitter.Client
 	Demux        twitter.SwitchDemux
@@ -51,6 +53,10 @@ func (j TweetJob) New(jb JobJson) *TweetJob {
 		fmt.Println(err)
 	}
 
+	if j.TSearch != "" {
+		j.SearchParam = strings.Split(j.TSearch, ",")
+	}
+
 	config := oauth1.NewConfig("EsuGWiTLdWcZ8jv9vq3sEwwjw", "uDkeSzncRyX2ZjEQYqKA2CiwqgrCoUQReSIOEKnC9uTh8IUcFn")
 	token := oauth1.NewToken("18946438-6snllPF33w1pxOt3KWPgo430jaPGtvTOd3mXN7b35", "tsgxnNaDIdgRAOh7WWVvqvNPds5XQC1cstqpWjUenmxdh")
 	httpClient := config.Client(oauth1.NoContext, token)
@@ -68,10 +74,10 @@ func (a *TweetJob) Init(ectd *clientv3.Client, log *logrus.Logger, settings *set
 	a.Logger = log
 
 	a.FilterParams = &twitter.StreamFilterParams{
-		Track:         a.TSearch, //[]string{"cat","dog","rabbit"},
+		Track:         a.SearchParam, //[]string{"cat","dog","rabbit"},
 		StallWarnings: twitter.Bool(true),
 	}
-
+	fmt.Println(a.TSearch)
 	log.Info("JOB: " + a.Name + " Created")
 }
 

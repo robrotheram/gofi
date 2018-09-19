@@ -46,11 +46,12 @@ func (c *ServiceJob) Stop() {}
 
 func (c *ServiceJob) UpdatedMetrics() {
 	c.Metric.Update()
-
+	count := 0
+	c.Metric.JobsProcessed = 0
 	for _, job := range JobList {
-		c.Metric.JobsProcessed += job.GetCount()
+		count += job.GetCount()
 	}
-
+	c.Metric.JobsProcessed = count - c.Metric.JobsProcessed
 }
 
 func (c *ServiceJob) updateETCD() {
@@ -128,7 +129,12 @@ func (c *WatcherJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 						parseJobList(event.Kv.Value)
 					}
 					if strings.HasPrefix(string(event.Kv.Key), settings.ETCD_ROOT+"/"+settings.ETCD_SERVICE) {
-						SetupJobs()
+						numberofWorkers, _, _ := GetNumberOfWorkers()
+						if CachedWorkers != numberofWorkers {
+							CachedWorkers = numberofWorkers
+							SetupJobs()
+						}
+
 					}
 				}
 			}

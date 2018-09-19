@@ -115,7 +115,6 @@ func parseJobList(listStr []byte) {
 }
 
 func SetupJobs() {
-
 	if len(TmpJobList) < 1 {
 		return
 	}
@@ -135,11 +134,6 @@ func SetupJobs() {
 		}
 		divided = append(divided, TmpJobList[i:end])
 	}
-
-	if CachedWorkers == numberofWorkers {
-		return
-	}
-	CachedWorkers = numberofWorkers
 
 	StopJobs()
 	if position >= len(divided) {
