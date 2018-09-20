@@ -34,6 +34,10 @@ type ArticleJob struct {
 	Output    *chan Model
 }
 
+func init() {
+	RegisterJob("ARTICLE", &ArticleJob{})
+}
+
 func (a ArticleStruct) Type() string {
 	return "article"
 }
@@ -52,8 +56,7 @@ type ArticleStruct struct {
 	InjectTime  time.Time
 }
 
-func (a ArticleJob) New(j JobJson) *ArticleJob {
-	a = ArticleJob{}
+func (a *ArticleJob) New(j JobJson) {
 	a.ID = j.ID
 	a.Name = j.Name
 	a.Type = j.Type
@@ -64,8 +67,6 @@ func (a ArticleJob) New(j JobJson) *ArticleJob {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	return &a
 }
 
 func (s ArticleJob) GetCount() int {
@@ -73,8 +74,8 @@ func (s ArticleJob) GetCount() int {
 }
 
 /* returns a list of strings of paramaters keys */
-func (a ArticleJob) GetParams() JobParams {
-	return JobParams{"ARTICLE", []string{"url"}}
+func (a ArticleJob) GetParams() *JobParams {
+	return &JobParams{"ARTICLE", []string{"url"}}
 }
 
 func (a *ArticleJob) Init(ectd *clientv3.Client, log *logrus.Logger, settings *settings.SettingStore, downloads *chan string, out *chan Model) {

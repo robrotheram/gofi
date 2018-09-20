@@ -67,7 +67,7 @@ func StopScheduler() {
 	EClient.Close()
 	Logger.Info("main: all goroutines have told us they've finished")
 }
-func RunCoreJob(job jobs.Job) {
+func RunCoreJob(job jobs.CoreJob) {
 	Logger.Info("Starting Job")
 	WG.Add(1)
 	job.Init(EClient, Logger, Settings, &Downloads, &Output)
@@ -143,11 +143,10 @@ func SetupJobs() {
 	CachedJobList = divided[position]
 	JobList = []jobs.Job{}
 	for _, jobjson := range CachedJobList {
-		switch jtype := jobjson.Type; jtype {
-		case settings.JOB_ARTICLE:
-			JobList = append(JobList, jobs.ArticleJob{}.New(jobjson))
-		case settings.JOB_TWITTER:
-			JobList = append(JobList, jobs.TweetJob{}.New(jobjson))
+		job := jobs.CreateJob(jobjson.Type)
+		if job != nil {
+			job.New(jobjson)
+			JobList = append(JobList, job)
 		}
 	}
 	Metrics.Jobs = CachedJobList

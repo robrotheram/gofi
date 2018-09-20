@@ -27,6 +27,10 @@ type ServiceJob struct {
 	Count  int
 }
 
+func (a ServiceJob) GetParams() *jobs.JobParams {
+	return nil
+}
+
 func (s ServiceJob) New(metric *jobs.Metric) *ServiceJob {
 	s.Name = "Service Status"
 	s.Metric = metric
@@ -88,6 +92,10 @@ func (c *ServiceJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 func (w WatcherJob) New() *WatcherJob {
 	w.Name = "Watcher Job"
 	return &w
+}
+
+func (a WatcherJob) GetParams() *jobs.JobParams {
+	return nil
 }
 
 type WatcherJob struct {
@@ -154,6 +162,10 @@ type DownloadJob struct {
 func (w DownloadJob) New() *DownloadJob {
 	w.Name = "Download Job"
 	return &w
+}
+
+func (a DownloadJob) GetParams() *jobs.JobParams {
+	return nil
 }
 
 func (s DownloadJob) GetCount() int {
@@ -234,6 +246,10 @@ type ElasticJob struct {
 func (w ElasticJob) New() *ElasticJob {
 	w.Name = "Elastic Job"
 	return &w
+}
+
+func (a ElasticJob) GetParams() *jobs.JobParams {
+	return nil
 }
 
 func (s ElasticJob) GetCount() int {

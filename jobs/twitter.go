@@ -15,6 +15,10 @@ import (
 	"time"
 )
 
+func init() {
+	RegisterJob("TWITTER", &TweetJob{})
+}
+
 type TweetJob struct {
 	Name string
 	JobJson
@@ -42,13 +46,11 @@ func (t TwitterStruct) Type() string {
 }
 
 /* returns a list of strings of paramaters keys */
-func (j TweetJob) GetParams() JobParams {
-	return JobParams{"TWITTER", []string{"search"}}
+func (j TweetJob) GetParams() *JobParams {
+	return &JobParams{"TWITTER", []string{"search"}}
 }
 
-func (j TweetJob) New(jb JobJson) *TweetJob {
-
-	j = TweetJob{}
+func (j *TweetJob) New(jb JobJson) {
 	j.ID = jb.ID
 	j.Name = jb.Name
 	j.Time = jb.Time
@@ -69,9 +71,6 @@ func (j TweetJob) New(jb JobJson) *TweetJob {
 
 	j.Client = twitter.NewClient(httpClient)
 	j.Demux = twitter.NewSwitchDemux()
-
-	//j.Demux.Tweet = ProcessTweet
-	return &j
 }
 
 func (a *TweetJob) Init(ectd *clientv3.Client, log *logrus.Logger, settings *settings.SettingStore, downloads *chan string, out *chan Model) {
