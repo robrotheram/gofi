@@ -22,7 +22,12 @@ func init() {
 type TweetJob struct {
 	Name string
 	JobJson
-	TSearch     string `json:"search"`
+	TSearch        string `json:"search"`
+	ConsumerKey    string `json:"consumerKey"`
+	ConsumerSecret string `json:"consumerSecret"`
+	Token          string `json:"token"`
+	TokenSecret    string `json:"tokenSecret"`
+
 	SearchParam []string
 
 	Client       *twitter.Client
@@ -47,7 +52,7 @@ func (t TwitterStruct) Type() string {
 
 /* returns a list of strings of paramaters keys */
 func (j TweetJob) GetParams() *JobParams {
-	return &JobParams{"TWITTER", []string{"search"}}
+	return &JobParams{"TWITTER", []string{"search", "consumerKey", "consumerSecret", "token", "tokenSecret"}}
 }
 
 func (j *TweetJob) New(jb JobJson) {
@@ -65,8 +70,8 @@ func (j *TweetJob) New(jb JobJson) {
 		j.SearchParam = strings.Split(j.TSearch, ",")
 	}
 
-	config := oauth1.NewConfig("EsuGWiTLdWcZ8jv9vq3sEwwjw", "uDkeSzncRyX2ZjEQYqKA2CiwqgrCoUQReSIOEKnC9uTh8IUcFn")
-	token := oauth1.NewToken("18946438-6snllPF33w1pxOt3KWPgo430jaPGtvTOd3mXN7b35", "tsgxnNaDIdgRAOh7WWVvqvNPds5XQC1cstqpWjUenmxdh")
+	config := oauth1.NewConfig(j.ConsumerKey, j.ConsumerSecret)
+	token := oauth1.NewToken(j.Token, j.TokenSecret)
 	httpClient := config.Client(oauth1.NoContext, token)
 
 	j.Client = twitter.NewClient(httpClient)
@@ -112,7 +117,6 @@ func (a *TweetJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case message := <-stream.Messages:
-			//fmt.Println("=========== HANDLE:"+a.Name+"==============");
 			demux.Handle(message)
 		case <-ctx.Done():
 			a.Logger.Info(a.Name + ": caller has told us to stop\n")
