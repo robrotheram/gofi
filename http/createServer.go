@@ -16,7 +16,7 @@ var schedular *scheduler.Scheduler
 
 func SetupServer(store *Datastore.DataStore, s *scheduler.Scheduler) {
 	fmt.Println("Setting up server")
-	BuildUI()
+	//BuildUI()
 	router := mux.NewRouter().StrictSlash(true)
 
 	CreateGraphAPI(router)

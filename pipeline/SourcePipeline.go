@@ -71,7 +71,7 @@ func (p *SourcePipeline) Run(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case now := <-ticker.C:
-			p.send("Time is now: " + now.String())
+			p.send("FROM:" + p.name + "Time is now: " + now.String())
 		case <-ctx.Done():
 			p.close()
 			return

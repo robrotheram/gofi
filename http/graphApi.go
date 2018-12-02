@@ -58,6 +58,7 @@ func CreateNode(w http.ResponseWriter, r *http.Request) {
 		if pipeline.CheckParmas(node.Type, node.Params) {
 			node.ID = uuid.Must(uuid.NewV4()).String()
 			graph.Nodes = append(graph.Nodes, node)
+			fmt.Println(graph)
 			err := datastore.Tables("GRAPH").Save(graph)
 			if err != nil {
 				fmt.Println(err)
