@@ -7,6 +7,7 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
+	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 	"injester_test/settings"
 	"log"
@@ -39,6 +40,8 @@ type TweetJob struct {
 
 	Logger *logrus.Logger
 	Count  int
+
+	Producer *nsq.Producer
 }
 
 type TwitterStruct struct {
@@ -104,6 +107,7 @@ func (a *TweetJob) Run(ctx context.Context, wg *sync.WaitGroup) {
 	demux := twitter.NewSwitchDemux()
 	demux.Tweet = func(tweet *twitter.Tweet) {
 		a.Count++
+		a.Producer.Publish("twitter", []byte(tweet.Text))
 		*a.Output <- TwitterStruct{tweet, time.Now()}
 	}
 	a.Logger.Info("Starting Stream...")

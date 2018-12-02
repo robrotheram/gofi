@@ -9,14 +9,15 @@ import (
 )
 
 type Metric struct {
-	IP            string    `json:"ip"`
-	Hostname      string    `json:"Hostname"`
-	NumJobs       int       `json:"numberofjobs"`
-	JobsProcessed int       `json:"jobsproccessed"`
-	Cpu           float64   `json:"cpu"`
-	Mem           uint64    `json:"memory"`
-	Jobs          []JobJson `json:"jobs"`
-	Time          time.Time `json:"time"`
+	IP                 string `json:"ip"`
+	Hostname           string `json:"Hostname"`
+	NumJobs            int    `json:"numberofjobs"`
+	JobsProcessed      int    `json:"jobsproccessed"`
+	TotalJobsProcessed int
+	Cpu                float64   `json:"cpu"`
+	Mem                uint64    `json:"memory"`
+	Jobs               []JobJson `json:"jobs"`
+	Time               time.Time `json:"time"`
 }
 
 func (m Metric) New(hostname string) *Metric {
