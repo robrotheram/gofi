@@ -1,6 +1,6 @@
 debug: true
 etcd:
-  - "http://192.168.0.125:2379"
+  - "api://192.168.0.125:2379"
 numberWorker: 4
 LogLevel: "error"
 LogOutput: "std"
@@ -11,4 +11,4 @@ s3secret: "rh95pKcfrX/okaQTnwA/gdnOAOsBF7Q4dRjprJJy"
 s3SSL: false
 s3BucketName: "articles"
 
-elastic: "http://192.168.0.125:9200"
+elastic: "api://192.168.0.125:9200"

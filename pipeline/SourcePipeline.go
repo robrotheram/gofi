@@ -67,7 +67,6 @@ func (p *SourcePipeline) Run(ctx context.Context, wg *sync.WaitGroup) {
 	p.producer.SetLogger(log.New(os.Stderr, "", log.Flags()), nsq.LogLevelWarning)
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
-
 	for {
 		select {
 		case now := <-ticker.C:

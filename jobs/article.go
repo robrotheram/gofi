@@ -128,7 +128,7 @@ func (job ArticleJob) getArticles(item *gofeed.Item) {
 		article.MetaDescription,
 		article.TopImage,
 		job.GetMD5Hash(article.TopImage),
-		"http://" + job.Setting.Endpoint + "/minio/download/" + job.Setting.BucketName + "/" + (job.GetMD5Hash(article.TopImage)) + "?token=%27%27",
+		"api://" + job.Setting.Endpoint + "/minio/download/" + job.Setting.BucketName + "/" + (job.GetMD5Hash(article.TopImage)) + "?token=%27%27",
 		article.FinalURL,
 		article.MetaKeywords,
 		t,

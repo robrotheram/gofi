@@ -3,6 +3,7 @@ package Datastore
 import (
 	"github.com/dgraph-io/badger"
 	"log"
+	"os"
 )
 
 type DataStore struct {
@@ -55,6 +56,8 @@ func createDatastore(ds string) *badger.DB {
 	opts := badger.DefaultOptions
 	opts.Dir = "/tmp/badger/" + ds
 	opts.ValueDir = "/tmp/badger/" + ds
+
+	os.MkdirAll(opts.Dir, os.ModePerm)
 
 	db, err := badger.Open(opts)
 	if err != nil {

@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+var Settings = new(SettingStore)
+
 type SettingStore struct {
 	Ectd            []string `yaml:"etcd"`
 	NumberOfworkers int      `yaml:"numberWorker"`
@@ -78,7 +80,7 @@ func (s SettingStore) Print(Log *logrus.Logger) {
 	}
 }
 
-func (s *SettingStore) getFromFile() {
+func (s *SettingStore) GetFromFile() {
 
 	confContent, err := ioutil.ReadFile("conf.yml")
 	if err != nil {
@@ -93,16 +95,16 @@ func (s *SettingStore) getFromFile() {
 	//fmt.Printf("config: %v\n", string(b))
 }
 
-func (s *SettingStore) getFromEnviroment() {
+func (s *SettingStore) GetFromEnviroment() {
 	s.SetETCDString(os.Getenv(CONFIG_ETCD))
 	s.SetNumberOfworkers(os.Getenv(CONFIG_WORKERS))
 	s.SetLogLevel(os.Getenv(CONFIG_LOG_LEVEL))
 	s.SetLogOutut(os.Getenv(CONFIG_LOG_OUTPUT))
 }
 
-func GetLogger(store *SettingStore) *logrus.Logger {
+func (s *SettingStore) GetLogger() *logrus.Logger {
 	Log := logrus.New()
-	switch output := store.LogOutut; output {
+	switch output := s.LogOutut; output {
 	case LOG_STD_OUT:
 		log.SetOutput(os.Stdout)
 	case LOG_FILE_OUT:
@@ -115,7 +117,7 @@ func GetLogger(store *SettingStore) *logrus.Logger {
 	default:
 		log.SetOutput(os.Stdout)
 	}
-	switch level := store.LogLevel; level {
+	switch level := s.LogLevel; level {
 	case LOG_INFO:
 		Log.Level = logrus.InfoLevel
 	case LOG_DEBUG:

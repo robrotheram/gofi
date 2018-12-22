@@ -28,11 +28,13 @@ type PipelineJob interface {
 }
 
 type PipelineStatus struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Status      string `json:"status"`
-	ReceivedMsg int    `json:"received_msg"`
-	SentMsg     int    `json:"sent_msg"`
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Status      string   `json:"status"`
+	Inputs      []string `json:"inputs"`
+	Output      string   `json:"outputs"`
+	ReceivedMsg int      `json:"received_msg"`
+	SentMsg     int      `json:"sent_msg"`
 }
 
 func CreatePiplineJob(name string) PipelineJob {
@@ -56,7 +58,7 @@ func (p *pipelineJob) New(pipeline Pipeline) {
 }
 
 func (p *pipelineJob) SetConfig(config PipeLineJson) {
-	setting := PipelineSettings{NsqAddr: "127.0.0.1:4150"}
+	setting := PipelineSettings{NsqAddr: "192.168.0.125:4150"}
 	if config.OutputTopic == "" {
 		config.OutputTopic = config.ID
 	}
@@ -84,6 +86,8 @@ func (p *pipelineJob) Stop() {
 
 func (p *pipelineJob) GetStatus() PipelineStatus {
 	p.status.SentMsg, p.status.ReceivedMsg, p.status.Name = p.pipeline.GetCount()
+	p.status.Inputs = p.config.InputTopic
+	p.status.Output = p.config.OutputTopic
 	return p.status
 }
 

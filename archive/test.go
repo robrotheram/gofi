@@ -1,6 +1,5 @@
 package main
 
-import "fmt"
 import "reflect"
 
 type Something interface {
@@ -25,9 +24,9 @@ func Updated(original Something, newX int) Something {
 	return newThing
 }
 
-func main() {
-	a := &RealThing{x: 1}
-	b := Updated(a, 5)
-	fmt.Printf("a = %v\n", a)
-	fmt.Printf("b = %v\n", b)
-}
+//func main() {
+//	a := &RealThing{x: 1}
+//	b := Updated(a, 5)
+//	fmt.Printf("a = %v\n", a)
+//	fmt.Printf("b = %v\n", b)
+//}
