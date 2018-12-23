@@ -16,7 +16,7 @@ func putHealth(w http.ResponseWriter, r *http.Request) {
 	scheduler.Health[metric.Worker] = &metric
 	if isNew {
 		fmt.Println("NEW NODE CONNECTED!!!")
-		scheduler.Rebalance()
+		scheduler.Orchestrator.Rebalance()
 	}
 }
 
@@ -27,7 +27,7 @@ func getHealth(w http.ResponseWriter, r *http.Request) {
 
 func getControllers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(scheduler.Controller)
+	json.NewEncoder(w).Encode(scheduler.Scheduler)
 }
 
 func getProcess(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +46,7 @@ func createProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	scheduler.Scheduler.CreateProcess(proc)
-	json.NewEncoder(w).Encode(scheduler.Controller)
+	json.NewEncoder(w).Encode(scheduler.Scheduler)
 }
 
 func updateProcess(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +57,7 @@ func updateProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	scheduler.Scheduler.UpdateProcess(proc)
-	json.NewEncoder(w).Encode(scheduler.Controller)
+	json.NewEncoder(w).Encode(scheduler.Scheduler)
 }
 
 func deteleProcess(w http.ResponseWriter, r *http.Request) {

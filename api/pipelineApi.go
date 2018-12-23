@@ -12,7 +12,7 @@ import (
 func StartProccess(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
-	err := scheduler.StartProcess(id)
+	_, err := scheduler.Orchestrator.StartProcess(id)
 	//scheduler.Scheduler.StartProcess(id)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -27,7 +27,7 @@ func StartProccess(w http.ResponseWriter, r *http.Request) {
 func Status(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
-	status, err := scheduler.StatusProcess(id)
+	status, err := scheduler.Orchestrator.StatusProcess(id)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(err)
@@ -65,7 +65,7 @@ func StatusAll(w http.ResponseWriter, r *http.Request) {
 func StopProccess(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
-	err := scheduler.StopProcess(id)
+	_, err := scheduler.Orchestrator.StopProcess(id)
 	//scheduler.Scheduler.StopProcess(id)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -96,7 +96,7 @@ func GetParams(w http.ResponseWriter, r *http.Request) {
 func CreateProcessAPI(router *mux.Router) {
 	fmt.Println("Creating Pipeline Router")
 
-	router.HandleFunc("/pipeline", LeaderRoute(StatusAll)).Methods("GET")
+	router.HandleFunc("/pipeline", (StatusAll)).Methods("GET")
 	router.HandleFunc("/pipeline/params", LeaderRoute(GetParams)).Methods("GET")
 	router.HandleFunc("/pipeline/start", LeaderRoute(StartAll)).Methods("GET")
 	router.HandleFunc("/pipeline/stop", LeaderRoute(StopAll)).Methods("GET")

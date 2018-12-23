@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/nsqio/go-nsq"
 	"github.com/satori/go.uuid"
-	"injester_test/jobs"
 	"log"
 	"sync"
 )
@@ -35,7 +34,7 @@ func (a *ArticlePipeline) GetType() string {
 	return "ARTICLE"
 }
 
-func (a ArticlePipeline) GetParams() *jobs.JobParams {
+func (a ArticlePipeline) GetParams() *PipeLineParams {
 	return nil
 }
 

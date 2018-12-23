@@ -28,8 +28,14 @@ type SettingStore struct {
 	UseSSL          bool   `yaml:"s3SSL"`
 	BucketName      string `yaml:"s3BucketName"`
 
-	Elastic string `yaml:"elastic"`
-	Debug   bool   `yaml:"debug"`
+	Elastic 	string 		`yaml:"elastic"`
+	Debug   	bool   		`yaml:"debug"`
+
+	Transport 	string		`yaml:"transport"`
+	Port		string		`yaml:"port"`
+	NSQ     	string 		`yaml:"nsq"`
+
+
 }
 
 func (s *SettingStore) SetETCD(etcd []string) {

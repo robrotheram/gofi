@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"injester_test/settings"
 )
 
 type pipelineJob struct {
@@ -58,7 +59,7 @@ func (p *pipelineJob) New(pipeline Pipeline) {
 }
 
 func (p *pipelineJob) SetConfig(config PipeLineJson) {
-	setting := PipelineSettings{NsqAddr: "192.168.0.125:4150"}
+	setting := PipelineSettings{NsqAddr: settings.Settings.NSQ+":4150"}
 	if config.OutputTopic == "" {
 		config.OutputTopic = config.ID
 	}

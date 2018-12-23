@@ -8,6 +8,7 @@ import (
 	"injester_test/leaderElection"
 	"log"
 	"net/http"
+	"injester_test/settings"
 )
 
 var datastore *Datastore.DataStore
@@ -25,9 +26,6 @@ func SetupServer(store *Datastore.DataStore) {
 	CreateProcessAPI(router)
 	CreateUserAPI(router)
 	CreateControllerAPI(router)
-	router.HandleFunc("/data", HomePage).Methods("GET")
-	router.HandleFunc("/settings", GetSettings).Methods("GET")
-
 	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./public/"))))
 
 	c := cors.New(cors.Options{
@@ -36,7 +34,7 @@ func SetupServer(store *Datastore.DataStore) {
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "PUT"},
 	})
 	handler = c.Handler(router)
-	go func() { log.Fatal(http.ListenAndServe(":8000", handler)) }()
+	go func() { log.Fatal(http.ListenAndServe(":"+settings.Settings.Port, handler)) }()
 }
 
 func LeaderRoute(handler http.HandlerFunc) http.HandlerFunc {

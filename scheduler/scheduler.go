@@ -2,10 +2,10 @@ package scheduler
 
 import (
 	"fmt"
-	"github.com/kataras/iris/core/errors"
 	"injester_test/datastore"
 	"injester_test/pipeline"
 	"time"
+	"errors"
 )
 
 /*

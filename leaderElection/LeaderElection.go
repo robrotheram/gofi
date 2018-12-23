@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/coreos/etcd/clientv3"
+	"go.etcd.io/etcd/clientv3"
 	"injester_test/settings"
 	"log"
 	"math"
@@ -36,7 +36,7 @@ func NewElection() {
 	dialTimeout := 2 * time.Second
 	client, err := clientv3.New(clientv3.Config{
 		DialTimeout: dialTimeout,
-		Endpoints:   []string{"192.168.0.125:2379"},
+		Endpoints: settings.Settings.Ectd,
 	})
 	if err != nil {
 		panic(err)

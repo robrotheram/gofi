@@ -64,8 +64,7 @@ func CreateNode(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				fmt.Println(err)
 			} else {
-				//scheduler.Scheduler.Process()
-				scheduler.ControllerProcess()
+				scheduler.Orchestrator.AddNode(node);
 				w.Header().Set("Content-Type", "application/json")
 				json.NewEncoder(w).Encode(graph)
 				return
@@ -144,13 +143,14 @@ func CreateConnection(w http.ResponseWriter, r *http.Request) {
 	var node Datastore.Connection
 	_ = json.NewDecoder(r.Body).Decode(&node)
 	node.ID = uuid.Must(uuid.NewV4()).String()
+
 	graph.Connections = append(graph.Connections, node)
 	err := datastore.Tables("GRAPH").Save(graph)
 	if err != nil {
 		fmt.Println(err)
 	} else {
 		//scheduler.Scheduler.Process()
-		scheduler.ControllerProcess()
+		scheduler.Orchestrator.AddConnection(node)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(graph)
 	}
@@ -192,7 +192,7 @@ func DeleteConnection(w http.ResponseWriter, r *http.Request) {
 	//delete node
 	for i, item := range graph.Connections {
 		if item.ID == params["cid"] {
-			scheduler.DeleteProcessConnection(item)
+			scheduler.Orchestrator.DeleteConnection(item)
 			graph.Connections = append(graph.Connections[:i], graph.Connections[i+1:]...)
 		}
 	}

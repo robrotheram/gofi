@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/nsqio/go-nsq"
 	"github.com/satori/go.uuid"
-	"injester_test/jobs"
 	"log"
 	"sync"
 )
@@ -31,7 +30,7 @@ func init() {
 	})
 }
 
-func (a ElasticPipeline) GetParams() *jobs.JobParams {
+func (a ElasticPipeline) GetParams() *PipeLineParams {
 	return nil
 }
 

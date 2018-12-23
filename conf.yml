@@ -1,9 +1,13 @@
 debug: true
 etcd:
-  - "api://192.168.0.125:2379"
+  - "192.168.0.9:2379"
 numberWorker: 4
 LogLevel: "error"
 LogOutput: "std"
+
+nsq: "192.168.0.9"
+port: "8000"
+transport: "http"
 
 s3endpoint: "192.168.0.125:9000"
 s3access: "AWUKTP29LL2Y2PU9VS4D"

@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/coreos/etcd/clientv3"
+	"go.etcd.io/etcd/clientv3"
 	"github.com/olivere/elastic"
 	"github.com/sirupsen/logrus"
 	"injester_test/api"
 	"injester_test/datastore"
-	"injester_test/jobs"
 	"injester_test/leaderElection"
 	"injester_test/scheduler"
 	"injester_test/settings"
@@ -24,9 +23,7 @@ var (
 	EClient   *clientv3.Client
 	ESclient  *elastic.Client
 	Logger    *logrus.Logger
-	Metrics   *jobs.Metric
 	Downloads = make(chan string, 100)
-	Output    = make(chan jobs.Model, 100)
 	Events    = make(chan string, 100)
 )
 
@@ -45,8 +42,6 @@ func init() {
 		hostname, _ := os.Hostname()
 		settings.SetHostname(hostname)
 	}
-
-	Metrics = jobs.Metric{}.New(settings.Hostname)
 	settings.Print(Logger)
 	Logger.Info("=========================================== ")
 
@@ -81,7 +76,7 @@ func main() {
 func healthCheck() {
 	updateHealth()
 	if leaderElection.Election.IsLeader() {
-		scheduler.ControllerProcess()
+		scheduler.Orchestrator.Load()
 	}
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
@@ -90,12 +85,12 @@ func healthCheck() {
 		case <-ticker.C:
 			updateHealth()
 			if leaderElection.Election.IsLeader() {
-				if len(scheduler.Controller) == 0 {
-					scheduler.ControllerProcess()
+				if scheduler.Orchestrator.Size() == 0 {
+					scheduler.Orchestrator.Load()
 				}
 				if !scheduler.CheckHealth() {
 					fmt.Println("REBALANCING!!!!")
-					scheduler.Rebalance()
+					scheduler.Orchestrator.Rebalance()
 				}
 			}
 		}
