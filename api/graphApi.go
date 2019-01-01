@@ -95,6 +95,7 @@ func EditNode(w http.ResponseWriter, r *http.Request) {
 	for i, item := range graph.Nodes {
 		if item.ID == params["nid"] {
 			_ = json.NewDecoder(r.Body).Decode(&item)
+			scheduler.Orchestrator.UpdateNode(item)
 			graph.Nodes[i] = item
 		}
 	}

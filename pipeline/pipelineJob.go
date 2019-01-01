@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"injester_test/settings"
+	"injester_test/leaderElection"
 )
 
 type pipelineJob struct {
@@ -36,6 +36,7 @@ type PipelineStatus struct {
 	Output      string   `json:"outputs"`
 	ReceivedMsg int      `json:"received_msg"`
 	SentMsg     int      `json:"sent_msg"`
+	Params      string   `json:"params"`
 }
 
 func CreatePiplineJob(name string) PipelineJob {
@@ -59,7 +60,7 @@ func (p *pipelineJob) New(pipeline Pipeline) {
 }
 
 func (p *pipelineJob) SetConfig(config PipeLineJson) {
-	setting := PipelineSettings{NsqAddr: settings.Settings.NSQ+":4150"}
+	setting := PipelineSettings{NsqAddr: leaderElection.Election.LeaderIP()+":4150"}
 	if config.OutputTopic == "" {
 		config.OutputTopic = config.ID
 	}
@@ -89,6 +90,7 @@ func (p *pipelineJob) GetStatus() PipelineStatus {
 	p.status.SentMsg, p.status.ReceivedMsg, p.status.Name = p.pipeline.GetCount()
 	p.status.Inputs = p.config.InputTopic
 	p.status.Output = p.config.OutputTopic
+	p.status.Params = p.config.Params
 	return p.status
 }
 

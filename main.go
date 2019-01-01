@@ -17,6 +17,7 @@ import (
 	"os"
 	"os/signal"
 	"time"
+	"injester_test/pipeline"
 )
 
 var (
@@ -60,7 +61,13 @@ func main() {
 	go healthCheck()
 	scheduler.CreateScheduler(datastore)
 
+	if (leaderElection.Election.IsLeader()){
+		//If I am the leader then then start nsq
+		go pipeline.StartNSQ()
+	}
 	//go Shedular.Run(Events)
+
+
 
 	api.SetupServer(datastore)
 
