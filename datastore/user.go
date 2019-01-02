@@ -78,18 +78,17 @@ func (uDs *userDataStore) load() error {
 		defer it.Close()
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
-			err := item.Value(func(v []byte) error {
-				u := User{}
-				error := u.deserialize(v)
-				if error != nil {
-					return error
-				}
-				user = append(user, u)
-				return nil
-			})
+			data, err := item.Value()
 			if err != nil {
 				return err
 			}
+			u := User{}
+			error := u.deserialize(data)
+			if error != nil {
+				return error
+			}
+			user = append(user, u)
+			return nil
 		}
 		return nil
 	})

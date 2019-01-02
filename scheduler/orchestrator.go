@@ -1,15 +1,15 @@
 package scheduler
 
 import (
-	"fmt"
-	"encoding/json"
-	"net/http"
 	"bytes"
-	"io/ioutil"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"injester_test/datastore"
 	"injester_test/pipeline"
 	"injester_test/settings"
-	"errors"
+	"io/ioutil"
+	"net/http"
 )
 
 type Process struct {
@@ -64,20 +64,19 @@ func Contains(a []string, x string) bool {
 	return false
 }
 
-
-var Orchestrator = NewOrchestator();
+var Orchestrator = NewOrchestator()
 
 type orchestrator struct {
-	processes  map[string]*proccessor
+	processes map[string]*proccessor
 }
 
-func NewOrchestator() *orchestrator{
+func NewOrchestator() *orchestrator {
 	o := orchestrator{
 		make(map[string]*proccessor)}
 	return &o
 }
 
-func (o *orchestrator) AddNode(node Datastore.Node){
+func (o *orchestrator) AddNode(node Datastore.Node) {
 	if !pipeline.DoesPipelineExist(node.Type) {
 		fmt.Println("Error Process: " + node.Type + " does not exist")
 		return
@@ -99,14 +98,14 @@ func (o *orchestrator) AddNode(node Datastore.Node){
 	}
 }
 
-func (o *orchestrator) UpdateNode(node Datastore.Node){
+func (o *orchestrator) UpdateNode(node Datastore.Node) {
 	if o.processes[node.ID] == nil {
 		return
 	}
 	p := o.processes[node.ID]
-	p.Process.Config = node.Params;
+	p.Process.Config = node.Params
 
-	if(p.Worker == ""){
+	if p.Worker == "" {
 		worker := o.findWorker()
 		o.processes[node.ID].Worker = worker.Worker
 		o.processes[node.ID].Ip = worker.Ip
@@ -114,7 +113,7 @@ func (o *orchestrator) UpdateNode(node Datastore.Node){
 	o.updateProcess(p.Ip, p.Process)
 }
 
-func (o *orchestrator) DeleteNode(node Datastore.Node){
+func (o *orchestrator) DeleteNode(node Datastore.Node) {
 	if o.processes[node.ID] == nil {
 		return
 	}
@@ -122,7 +121,7 @@ func (o *orchestrator) DeleteNode(node Datastore.Node){
 	o.deleteProcess(o.processes[node.ID].Ip, o.processes[node.ID].Process)
 }
 
-func (o *orchestrator) AddConnection(connection Datastore.Connection){
+func (o *orchestrator) AddConnection(connection Datastore.Connection) {
 	if o.processes[connection.OutputNode] == nil {
 		return
 	}
@@ -133,14 +132,14 @@ func (o *orchestrator) AddConnection(connection Datastore.Connection){
 	}
 }
 
-func (o *orchestrator) DeleteConnection(connection Datastore.Connection){
+func (o *orchestrator) DeleteConnection(connection Datastore.Connection) {
 	if o.processes[connection.OutputNode] == nil {
 		return
 	}
 	p := o.processes[connection.OutputNode]
 	if Contains(p.Process.InputTopic, connection.InputNode) {
 		for i, item := range p.Process.InputTopic {
-			if item == connection.InputNode{
+			if item == connection.InputNode {
 				p.Process.InputTopic = append(p.Process.InputTopic[:i], p.Process.InputTopic[i+1:]...)
 			}
 		}
@@ -148,7 +147,7 @@ func (o *orchestrator) DeleteConnection(connection Datastore.Connection){
 	}
 }
 
-func (o *orchestrator) ProcessGraph(graph Datastore.Graph){
+func (o *orchestrator) ProcessGraph(graph Datastore.Graph) {
 	for _, v := range graph.Nodes {
 		o.AddNode(v)
 	}
@@ -157,12 +156,11 @@ func (o *orchestrator) ProcessGraph(graph Datastore.Graph){
 	}
 }
 
-
-func (o *orchestrator) Size() int{
+func (o *orchestrator) Size() int {
 	return len(o.processes)
 }
 
-func (o *orchestrator) Load(){
+func (o *orchestrator) Load() {
 	graphs, ok := Scheduler.datastore.Tables("GRAPH").GetAll().([]Datastore.Graph)
 	if !ok {
 		return
@@ -172,10 +170,9 @@ func (o *orchestrator) Load(){
 	}
 }
 
-func (o * orchestrator) GetProcessors() map[string]*proccessor {
+func (o *orchestrator) GetProcessors() map[string]*proccessor {
 	return o.processes
 }
-
 
 //When we have a new worker node or if a worker node dies we need to rebalance the non running proccesses across the alive nodes
 func (o *orchestrator) Rebalance() {
@@ -219,7 +216,7 @@ func (o *orchestrator) StatusProcess(procID string) (pipeline.PipelineStatus, er
 		return pipeline.PipelineStatus{}, errors.New("Pipeline Not found")
 	}
 
-	b, err := o.sendCommand(o.processes[procID].Ip,"process/" + o.processes[procID].Process.Id + "/status","GET", nil)
+	b, err := o.sendCommand(o.processes[procID].Ip, "process/"+o.processes[procID].Process.Id+"/status", "GET", nil)
 	if err != nil {
 		return pipeline.PipelineStatus{}, err
 	}
@@ -227,40 +224,41 @@ func (o *orchestrator) StatusProcess(procID string) (pipeline.PipelineStatus, er
 	err = json.Unmarshal(b, &status)
 	return status, nil
 }
+
 //Get the processor status by looking up which worker currently is running it and call start
 func (o *orchestrator) StartProcess(procID string) ([]byte, error) {
 	if o.processes[procID] == nil {
 		return nil, errors.New("Pipeline Not found")
 	}
-	fmt.Println("Sending STOP Proc to node: " + o.processes[procID].Ip)
-	return o.sendCommand(o.processes[procID].Ip,"process/" + o.processes[procID].Process.Id + "/start","GET", nil)
+	fmt.Println("Sending START Proc to node: " + o.processes[procID].Ip)
+	return o.sendCommand(o.processes[procID].Ip, "process/"+o.processes[procID].Process.Id+"/start", "GET", nil)
 }
+
 //Get the processor status by looking up which worker currently is running it and call stop
 func (o *orchestrator) StopProcess(procID string) ([]byte, error) {
 	if o.processes[procID] == nil {
 		return nil, errors.New("Pipeline Not found")
 	}
 	fmt.Println("Sending STOP Proc to node: " + o.processes[procID].Ip)
-	return o.sendCommand(o.processes[procID].Ip,"process/" + o.processes[procID].Process.Id + "/stop","GET", nil)
+	return o.sendCommand(o.processes[procID].Ip, "process/"+o.processes[procID].Process.Id+"/stop", "GET", nil)
 }
 
-
 func (o *orchestrator) createProcess(ip string, proc Process) {
-	o.sendCommand(ip,"process", "PUT", proc )
+	o.sendCommand(ip, "process", "PUT", proc)
 }
 
 func (o *orchestrator) updateProcess(ip string, proc Process) {
-	o.sendCommand(ip,"process", "POST", proc )
+	o.sendCommand(ip, "process", "POST", proc)
 }
 
 func (o *orchestrator) deleteProcess(ip string, proc Process) {
-	o.sendCommand(ip,"process/" + proc.Id, "DELETE", proc )
+	o.sendCommand(ip, "process/"+proc.Id, "DELETE", proc)
 }
 
-func (o *orchestrator) sendCommand(ip string, command string, method string, data interface{}) ([]byte, error){
-	url := fmt.Sprintf("%s://%s:%s/%s",settings.Settings.Transport, ip, settings.Settings.Port, command)
+func (o *orchestrator) sendCommand(ip string, command string, method string, data interface{}) ([]byte, error) {
+	url := fmt.Sprintf("%s://%s:%s/%s", settings.Settings.Transport, ip, settings.Settings.Port, command)
 
-	if(method=="GET"){
+	if method == "GET" {
 		response, err := http.Get(url)
 		if err != nil {
 			return nil, err
@@ -284,5 +282,3 @@ func (o *orchestrator) sendCommand(ip string, command string, method string, dat
 		return ioutil.ReadAll(resp.Body)
 	}
 }
-
-

@@ -91,12 +91,7 @@ func (p *TwitterPipeline) Init(settings PipelineSettings, config PipeLineJson) {
 	p.client = twitter.NewClient(p.httpClient)
 	p.demux = twitter.NewSwitchDemux()
 
-	u2, err := uuid.NewV4()
-
-	if err != nil {
-		fmt.Printf("Something went wrong: %s", err)
-		return
-	}
+	u2 := uuid.NewV4()
 
 	p.channel = u2.String()
 }

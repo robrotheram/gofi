@@ -53,17 +53,20 @@ func (p *SourcePipeline) Init(settings PipelineSettings, config PipeLineJson) {
 	//p.inputTopic = config.InputTopic
 	p.outputTopic = config.OutputTopic
 
-	u2, err := uuid.NewV4()
-	if err != nil {
-		fmt.Printf("Something went wrong: %s", err)
-		return
-	}
+	u2 := uuid.NewV4()
+
 	p.channel = u2.String()
 }
 
 func (p *SourcePipeline) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-	p.producer, _ = nsq.NewProducer(p.settings.NsqAddr, nsq.NewConfig())
+	fmt.Println("STARTING SPURCE")
+	prod, err := nsq.NewProducer(p.settings.NsqAddr, nsq.NewConfig())
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	p.producer = prod
 	p.producer.SetLogger(log.New(os.Stderr, "", log.Flags()), nsq.LogLevelWarning)
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
@@ -73,6 +76,7 @@ func (p *SourcePipeline) Run(ctx context.Context, wg *sync.WaitGroup) {
 			p.send("FROM:" + p.name + "Time is now: " + now.String())
 		case <-ctx.Done():
 			p.close()
+			fmt.Println("STOPPING!!!! SPURCE")
 			return
 		}
 	}
@@ -87,7 +91,13 @@ func (p *SourcePipeline) close() {
 
 func (p *SourcePipeline) send(message string) {
 	p.sendCount++
-	p.producer.Publish(p.outputTopic, []byte(message))
+	err := p.producer.Publish(p.outputTopic, []byte(message))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Sending message: " + message)
+
 }
 
 func (tw *SourcePipeline) HandleMessage(msg *nsq.Message) error {

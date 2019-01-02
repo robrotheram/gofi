@@ -26,7 +26,7 @@ func CreatePerson(w http.ResponseWriter, r *http.Request) {
 	var user Datastore.User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	users := datastore.Tables("USER")
-	user.Id = uuid.Must(uuid.NewV4()).String()
+	user.Id = uuid.NewV4().String()
 	users.Save(user)
 	json.NewEncoder(w).Encode(user)
 }

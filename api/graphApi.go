@@ -57,14 +57,14 @@ func CreateNode(w http.ResponseWriter, r *http.Request) {
 
 	if pipeline.DoesPipelineExist(node.Type) {
 		if pipeline.CheckParmas(node.Type, node.Params) {
-			node.ID = uuid.Must(uuid.NewV4()).String()
+			node.ID = uuid.NewV4().String()
 			graph.Nodes = append(graph.Nodes, node)
 			fmt.Println(graph)
 			err := datastore.Tables("GRAPH").Save(graph)
 			if err != nil {
 				fmt.Println(err)
 			} else {
-				scheduler.Orchestrator.AddNode(node);
+				scheduler.Orchestrator.AddNode(node)
 				w.Header().Set("Content-Type", "application/json")
 				json.NewEncoder(w).Encode(graph)
 				return
@@ -143,7 +143,7 @@ func CreateConnection(w http.ResponseWriter, r *http.Request) {
 	}
 	var node Datastore.Connection
 	_ = json.NewDecoder(r.Body).Decode(&node)
-	node.ID = uuid.Must(uuid.NewV4()).String()
+	node.ID = uuid.NewV4().String()
 
 	graph.Connections = append(graph.Connections, node)
 	err := datastore.Tables("GRAPH").Save(graph)
@@ -208,7 +208,7 @@ func DeleteConnection(w http.ResponseWriter, r *http.Request) {
 func CreateGraph(w http.ResponseWriter, r *http.Request) {
 	var graph Datastore.Graph
 	_ = json.NewDecoder(r.Body).Decode(&graph)
-	graph.Id = uuid.Must(uuid.NewV4()).String()
+	graph.Id = uuid.NewV4().String()
 	datastore.Tables("GRAPH").Save(graph)
 
 	w.Header().Set("Content-Type", "application/json")

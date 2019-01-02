@@ -83,18 +83,17 @@ func (uDs *graphDataStore) Load() error {
 		defer it.Close()
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
-			err := item.Value(func(v []byte) error {
-				u := Graph{}
-				error := u.deserialize(v)
-				if error != nil {
-					return error
-				}
-				Graphs = append(Graphs, u)
-				return nil
-			})
+			data, err := item.Value()
 			if err != nil {
 				return err
 			}
+			u := Graph{}
+			error := u.deserialize(data)
+			if error != nil {
+				return error
+			}
+			Graphs = append(Graphs, u)
+			return nil
 		}
 		return nil
 	})

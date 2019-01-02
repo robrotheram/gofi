@@ -1,11 +1,11 @@
 package scheduler
 
 import (
+	"errors"
 	"fmt"
 	"injester_test/datastore"
 	"injester_test/pipeline"
 	"time"
-	"errors"
 )
 
 /*
@@ -58,8 +58,10 @@ func (s *scheduler) UpdateProcess(proc Process) {
 
 	if s.processes[proc.Id].GetStatus().Status == "ACTIVE" {
 		go func() {
+			fmt.Println("Updating: Stopping")
 			s.processes[proc.Id].Stop()
 			time.Sleep(5 * time.Second)
+			fmt.Println("Updating: Starting")
 			s.processes[proc.Id].Run()
 		}()
 	}
@@ -128,12 +130,6 @@ func (s *scheduler) Debug() {
 		fmt.Println("==============================================")
 	}
 }
-
-//func (s *scheduler) Run () {
-//	s.StopAll()
-//	s.Process()
-//	s.debug()
-//}
 
 func (s *scheduler) StartProcess(id string) error {
 	p := s.processes[id]

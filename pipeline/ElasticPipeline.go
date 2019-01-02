@@ -51,11 +51,8 @@ func (p *ElasticPipeline) Init(settings PipelineSettings, config PipeLineJson) {
 	//p.inputTopic = config.InputTopic
 	p.outputTopic = config.OutputTopic
 
-	u2, err := uuid.NewV4()
-	if err != nil {
-		fmt.Printf("Something went wrong: %s", err)
-		return
-	}
+	u2 := uuid.NewV4()
+
 	p.channel = u2.String()
 }
 
