@@ -4,20 +4,22 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"go.etcd.io/etcd/clientv3"
-	"github.com/olivere/elastic"
-	"github.com/sirupsen/logrus"
-	"injester_test/api"
-	"injester_test/datastore"
-	"injester_test/leaderElection"
-	"injester_test/scheduler"
-	"injester_test/settings"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
-	"injester_test/pipeline"
+
+	"github.com/olivere/elastic"
+	"github.com/robrotheram/gofi/api"
+	"github.com/robrotheram/gofi/datastore"
+	"github.com/robrotheram/gofi/leaderElection"
+	"github.com/robrotheram/gofi/pipeline"
+	"github.com/robrotheram/gofi/scheduler"
+	"github.com/robrotheram/gofi/settings"
+	"github.com/sirupsen/logrus"
+	"go.etcd.io/etcd/clientv3"
 )
 
 var (
@@ -36,6 +38,7 @@ func init() {
 	settings.GetFromEnviroment()
 	Logger = settings.GetLogger()
 	Logger.Info("===== Config Loaded sucessfully  ========== ")
+	settings.NodeIP, _ = getIP()
 
 	if settings.Debug {
 		settings.SetHostname(GetRandomName(0))
@@ -61,13 +64,11 @@ func main() {
 	go healthCheck()
 	scheduler.CreateScheduler(datastore)
 
-	if (leaderElection.Election.IsLeader()){
+	if leaderElection.Election.IsLeader() {
 		//If I am the leader then then start nsq
 		go pipeline.StartNSQ()
 	}
 	//go Shedular.Run(Events)
-
-
 
 	api.SetupServer(datastore)
 
@@ -150,5 +151,13 @@ func cleanUpDatabase() {
 			datastore.Tables("GRAPH").Save(graph)
 		}
 	}
+}
 
+func getIP() (string, error) {
+	host, _ := os.Hostname()
+	addr, err := net.LookupIP(host)
+	if err != nil {
+		return "", err
+	}
+	return addr[0].String(), nil
 }

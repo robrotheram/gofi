@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"injester_test/scheduler"
+	"github.com/robrotheram/gofi/scheduler"
 	"net/http"
 )
 

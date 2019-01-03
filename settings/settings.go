@@ -20,6 +20,7 @@ type SettingStore struct {
 	LogLevel        string   `yaml:"LogLevel"`
 	LogOutut        string   `yaml:"LogOutput"`
 	Hostname        string
+	NodeIP          string
 
 	//should store in etcd
 	Endpoint        string `yaml:"s3endpoint"`
@@ -28,14 +29,12 @@ type SettingStore struct {
 	UseSSL          bool   `yaml:"s3SSL"`
 	BucketName      string `yaml:"s3BucketName"`
 
-	Elastic 	string 		`yaml:"elastic"`
-	Debug   	bool   		`yaml:"debug"`
+	Elastic string `yaml:"elastic"`
+	Debug   bool   `yaml:"debug"`
 
-	Transport 	string		`yaml:"transport"`
-	Port		string		`yaml:"port"`
-	NSQ     	string 		`yaml:"nsq"`
-
-
+	Transport string `yaml:"transport"`
+	Port      string `yaml:"port"`
+	NSQ       string `yaml:"nsq"`
 }
 
 func (s *SettingStore) SetETCD(etcd []string) {

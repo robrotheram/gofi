@@ -3,7 +3,9 @@ package pipeline
 import (
 	"context"
 	"fmt"
+	"github.com/gogo/protobuf/proto"
 	"github.com/nsqio/go-nsq"
+	"github.com/robrotheram/gofi/messages"
 	"log"
 	"os"
 	"sync"
@@ -98,12 +100,16 @@ func (p *SinkPipeline) send(message string) {
 
 func (tw *SinkPipeline) HandleMessage(msg *nsq.Message) error {
 	tw.receivedCount++
+	//Converts to protobuf message
+	var data = &messages.GofiMessage{}
+	proto.Unmarshal(msg.Body, data)
+	fmt.Printf("Received message from: %s \n Message contains: %s \n", data.GetKey(), string(data.GetValue()))
+
 	// Handles input
 	//fmt.Println(msg.Attempts)
 	//fmt.Println(msg.ID)
 	//fmt.Println(msg.NSQDAddress)
 	//fmt.Println(msg.Timestamp)
-	fmt.Println(string(msg.Body))
 
 	//tw.send(string(msg.Body))
 	return nil

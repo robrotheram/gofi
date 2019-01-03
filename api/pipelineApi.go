@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"injester_test/pipeline"
-	"injester_test/scheduler"
+	"github.com/robrotheram/gofi/pipeline"
+	"github.com/robrotheram/gofi/scheduler"
 	"net/http"
 )
 

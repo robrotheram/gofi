@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 RUN mkdir /app 
-ADD . /app/
+ADD package /app/
 WORKDIR /app
 RUN touch /.container
-CMD ["/app/injester_test"]
+CMD ["/app/gofi"]

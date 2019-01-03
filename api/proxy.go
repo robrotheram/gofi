@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"injester_test/leaderElection"
+	"github.com/robrotheram/gofi/leaderElection"
 	"io"
 	"log"
 	"net/http"

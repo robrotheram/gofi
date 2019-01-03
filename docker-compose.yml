@@ -1,9 +1,15 @@
 version: "3"
 services:
+  etcd:
+    image: soyking/etcd-goreman:3.2.7
+    environment:
+      - CLIENT_ADDR=etcd
+    ports:
+      - "2379:2379"
+    networks:
+      - webnet
   web:
-    # replace username/repo:tag with your name and image details
-    build: .
-    image: ingester:0.1
+    image: gofi:latest
     deploy:
       replicas: 3
       resources:
@@ -13,8 +19,10 @@ services:
       restart_policy:
         condition: on-failure
     ports:
-    - "4000:8083"
+      - "8000:8000"
+    depends_on:
+      - etcd
     networks:
-    - webnet
+      - webnet
 networks:
   webnet:

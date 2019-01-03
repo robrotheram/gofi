@@ -3,8 +3,8 @@ package pipeline
 import (
 	"context"
 	"fmt"
+	"github.com/robrotheram/gofi/leaderElection"
 	"sync"
-	"injester_test/leaderElection"
 )
 
 type pipelineJob struct {
@@ -60,7 +60,7 @@ func (p *pipelineJob) New(pipeline Pipeline) {
 }
 
 func (p *pipelineJob) SetConfig(config PipeLineJson) {
-	setting := PipelineSettings{NsqAddr: leaderElection.Election.LeaderIP()+":4150"}
+	setting := PipelineSettings{NsqAddr: leaderElection.Election.LeaderIP() + ":4150"}
 	if config.OutputTopic == "" {
 		config.OutputTopic = config.ID
 	}
@@ -76,12 +76,14 @@ func (p *pipelineJob) Register() {
 
 func (p *pipelineJob) Run() {
 	p.wg.Add(1)
+	p.context, p.cancel = context.WithCancel(context.Background())
 	p.status.Status = "ACTIVE"
 	go p.pipeline.Run(p.context, &p.wg)
 }
 
 func (p *pipelineJob) Stop() {
 	p.status.Status = "STOPPED"
+	fmt.Println("CALLING STOPS")
 	p.cancel()
 	p.wg.Wait()
 }

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/robrotheram/gofi/settings"
 	"go.etcd.io/etcd/clientv3"
-	"injester_test/settings"
 	"log"
 	"math"
 	"net"
@@ -36,7 +36,7 @@ func NewElection() {
 	dialTimeout := 2 * time.Second
 	client, err := clientv3.New(clientv3.Config{
 		DialTimeout: dialTimeout,
-		Endpoints: settings.Settings.Ectd,
+		Endpoints:   settings.Settings.Ectd,
 	})
 	if err != nil {
 		panic(err)
@@ -236,6 +236,10 @@ func (le *leaderElection) observe() {
 }
 
 func GetExternalIP() (string, error) {
+	if settings.Settings.NodeIP != "" {
+		return settings.Settings.NodeIP, nil
+	}
+
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return "", err

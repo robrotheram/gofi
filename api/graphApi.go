@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/robrotheram/gofi/datastore"
+	"github.com/robrotheram/gofi/pipeline"
+	"github.com/robrotheram/gofi/scheduler"
 	"github.com/satori/go.uuid"
-	"injester_test/datastore"
-	"injester_test/pipeline"
-	"injester_test/scheduler"
 	"net/http"
 )
 

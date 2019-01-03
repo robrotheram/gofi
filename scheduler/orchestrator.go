@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"injester_test/datastore"
-	"injester_test/pipeline"
-	"injester_test/settings"
+	"github.com/robrotheram/gofi/datastore"
+	"github.com/robrotheram/gofi/pipeline"
+	"github.com/robrotheram/gofi/settings"
 	"io/ioutil"
 	"net/http"
 )

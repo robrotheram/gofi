@@ -3,9 +3,12 @@ package pipeline
 import (
 	"context"
 	"fmt"
+	"github.com/gogo/protobuf/proto"
 	"github.com/nsqio/go-nsq"
+	"github.com/robrotheram/gofi/messages"
 	"github.com/satori/go.uuid"
 	"log"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -73,7 +76,8 @@ func (p *SourcePipeline) Run(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case now := <-ticker.C:
-			p.send("FROM:" + p.name + "Time is now: " + now.String())
+			rand.Seed(now.UnixNano())
+			p.send(fmt.Sprintf("%d", rand.Intn(1000)))
 		case <-ctx.Done():
 			p.close()
 			fmt.Println("STOPPING!!!! SPURCE")
@@ -91,7 +95,16 @@ func (p *SourcePipeline) close() {
 
 func (p *SourcePipeline) send(message string) {
 	p.sendCount++
-	err := p.producer.Publish(p.outputTopic, []byte(message))
+
+	//Convert string into a protobuf message
+	pb := messages.GofiMessage{Key: p.GetType(), Value: []byte(message)}
+	data, err := proto.Marshal(&pb)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = p.producer.Publish(p.outputTopic, data)
 	if err != nil {
 		fmt.Println(err)
 		return

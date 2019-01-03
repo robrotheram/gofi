@@ -3,12 +3,12 @@ package api
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/robrotheram/gofi/datastore"
+	"github.com/robrotheram/gofi/leaderElection"
+	"github.com/robrotheram/gofi/settings"
 	"github.com/rs/cors"
-	"injester_test/datastore"
-	"injester_test/leaderElection"
 	"log"
 	"net/http"
-	"injester_test/settings"
 )
 
 var datastore *Datastore.DataStore

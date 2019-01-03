@@ -1,0 +1,15 @@
+syntax = "proto3";
+package messages;
+
+message GofiMessage {
+    string key = 1;
+    bytes value = 2;
+}
+
+message GofiVoid {
+}
+
+
+service Gofi {
+    rpc Send(stream GofiMessage) returns (stream GofiMessage) {}
+}

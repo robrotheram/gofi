@@ -3,8 +3,8 @@ package scheduler
 import (
 	"errors"
 	"fmt"
-	"injester_test/datastore"
-	"injester_test/pipeline"
+	"github.com/robrotheram/gofi/datastore"
+	"github.com/robrotheram/gofi/pipeline"
 	"time"
 )
 
