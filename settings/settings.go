@@ -19,8 +19,10 @@ type SettingStore struct {
 	NumberOfworkers int      `yaml:"numberWorker"`
 	LogLevel        string   `yaml:"LogLevel"`
 	LogOutut        string   `yaml:"LogOutput"`
-	Hostname        string
-	NodeIP          string
+	DataPath        string   `yaml:"datapath"`
+
+	Hostname string
+	NodeIP   string
 
 	//should store in etcd
 	Endpoint        string `yaml:"s3endpoint"`
@@ -74,6 +76,12 @@ func (s *SettingStore) SetLogOutut(output string) {
 	}
 }
 
+func (s *SettingStore) SetDataPath(path string) {
+	if path != "" {
+		s.DataPath = path
+	}
+}
+
 func (s SettingStore) Print(Log *logrus.Logger) {
 	e := reflect.ValueOf(&s).Elem()
 	for i := 0; i < e.NumField(); i++ {
@@ -105,6 +113,7 @@ func (s *SettingStore) GetFromEnviroment() {
 	s.SetNumberOfworkers(os.Getenv(CONFIG_WORKERS))
 	s.SetLogLevel(os.Getenv(CONFIG_LOG_LEVEL))
 	s.SetLogOutut(os.Getenv(CONFIG_LOG_OUTPUT))
+	s.SetDataPath(os.Getenv(CONFIG_DATAPATH))
 }
 
 func (s *SettingStore) GetLogger() *logrus.Logger {

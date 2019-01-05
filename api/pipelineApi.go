@@ -54,9 +54,6 @@ func Config(w http.ResponseWriter, r *http.Request) {
 
 func StatusAll(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if len(scheduler.Scheduler.AllStatusProcess()) == 0 {
-		scheduler.Scheduler.Process()
-	}
 
 	json.NewEncoder(w).Encode(scheduler.Scheduler.AllStatusProcess())
 

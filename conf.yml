@@ -16,3 +16,5 @@ s3SSL: false
 s3BucketName: "articles"
 
 elastic: "api://192.168.0.125:9200"
+
+datapath: "/tmp/badger/"

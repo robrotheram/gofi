@@ -17,6 +17,7 @@ import (
 var rootPath = "e3w_test/LeaderElection/"
 var path = rootPath + "leader"
 var Election leaderElection
+var ttl = int64(15)
 
 type leaderElection struct {
 	isleader  bool
@@ -33,12 +34,13 @@ type leaderElection struct {
 
 func NewElection() {
 	le := leaderElection{}
-	dialTimeout := 2 * time.Second
+	dialTimeout := 20 * time.Second
 	client, err := clientv3.New(clientv3.Config{
 		DialTimeout: dialTimeout,
 		Endpoints:   settings.Settings.Ectd,
 	})
 	if err != nil {
+		fmt.Println("Unable to connect to etcd panic!!!!!")
 		panic(err)
 	}
 	le.worker = settings.Settings.Hostname
@@ -130,12 +132,11 @@ func (le *leaderElection) WhoIsLeader() string {
 
 		if aworker != "" {
 			if strings.HasSuffix(aworker, le.worker) {
+				fmt.Println("I AM Now LEADER")
+				le.Call()
 				le.isleader = true
 				le.putValue(le.ip)
 				le.leader = le.worker
-				fmt.Println("I AM Now LEADER")
-
-				le.Call()
 			} else {
 				le.isleader = false
 				le.leader = aworker
@@ -151,7 +152,7 @@ func (le *leaderElection) WhoIsLeader() string {
 }
 
 func (le *leaderElection) putLeder(ip string) {
-	lease, err := le.client.Grant(context.Background(), 60)
+	lease, err := le.client.Grant(context.Background(), ttl)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -159,7 +160,7 @@ func (le *leaderElection) putLeder(ip string) {
 }
 
 func (le *leaderElection) putValue(msg string) {
-	lease, err := le.client.Grant(context.Background(), 60)
+	lease, err := le.client.Grant(context.Background(), ttl)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -10,6 +10,8 @@ services:
       - webnet
   web:
     image: gofi:latest
+    environment:
+      - DATA_PATH=/app/data/
     deploy:
       replicas: 3
       resources:
@@ -24,5 +26,9 @@ services:
       - etcd
     networks:
       - webnet
+    volumes:
+      - app-volume:/app/data
 networks:
   webnet:
+volumes:
+  app-volume:

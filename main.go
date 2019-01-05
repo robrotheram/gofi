@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/robrotheram/gofi/pipeline"
 	"math/rand"
 	"net"
 	"net/http"
@@ -15,7 +16,6 @@ import (
 	"github.com/robrotheram/gofi/api"
 	"github.com/robrotheram/gofi/datastore"
 	"github.com/robrotheram/gofi/leaderElection"
-	"github.com/robrotheram/gofi/pipeline"
 	"github.com/robrotheram/gofi/scheduler"
 	"github.com/robrotheram/gofi/settings"
 	"github.com/sirupsen/logrus"
@@ -56,18 +56,23 @@ var datastore *Datastore.DataStore
 func main() {
 	//InitScheduler()
 	datastore = Datastore.NewDataStore()
-	defer datastore.Close()
-	cleanUpDatabase()
+	scheduler.CreateScheduler(datastore)
 	leaderElection.NewElection()
+	leaderElection.Election.Register(func() {
+		fmt.Println("Setting Up datastore since I am leader")
+		datastore.Load()
+		cleanUpDatabase()
+		if scheduler.Orchestrator.Size() == 0 {
+			scheduler.Orchestrator.Load()
+		}
+	})
+
 	leaderElection.Election.Start()
 	defer leaderElection.Election.Stop()
 	go healthCheck()
-	scheduler.CreateScheduler(datastore)
 
-	if leaderElection.Election.IsLeader() {
-		//If I am the leader then then start nsq
-		go pipeline.StartNSQ()
-	}
+	go pipeline.StartNSQ()
+
 	//go Shedular.Run(Events)
 
 	api.SetupServer(datastore)
@@ -78,14 +83,11 @@ func main() {
 	Logger.Info("main: received C-c - shutting down")
 	scheduler.Scheduler.StopAll()
 	//StopScheduler()
-
+	datastore.Close()
 }
 
 func healthCheck() {
 	updateHealth()
-	if leaderElection.Election.IsLeader() {
-		scheduler.Orchestrator.Load()
-	}
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	for {
@@ -93,9 +95,6 @@ func healthCheck() {
 		case <-ticker.C:
 			updateHealth()
 			if leaderElection.Election.IsLeader() {
-				if scheduler.Orchestrator.Size() == 0 {
-					scheduler.Orchestrator.Load()
-				}
 				if !scheduler.CheckHealth() {
 					fmt.Println("REBALANCING!!!!")
 					scheduler.Orchestrator.Rebalance()

@@ -22,9 +22,12 @@ type userDataStore struct {
 
 func (u userDataStore) New() *userDataStore {
 	u = userDataStore{}
-	u.db = createDatastore("users")
-	u.load()
 	return &u
+}
+
+func (u *userDataStore) Initialize() {
+	u.db = createDatastore("users")
+	//u.Load()
 }
 
 func (u *User) serialize() []byte {

@@ -2,6 +2,7 @@ package Datastore
 
 import (
 	"github.com/dgraph-io/badger"
+	"github.com/robrotheram/gofi/settings"
 	"log"
 	"os"
 )
@@ -12,6 +13,7 @@ type DataStore struct {
 
 type DS interface {
 	Close()
+	Initialize()
 	Search(id string) interface{}
 	Edit(obj interface{}) error
 	Delete(obj interface{}) error
@@ -27,6 +29,12 @@ func NewDataStore() *DataStore {
 	d.RegisterData("USER", userDataStore{}.New())
 
 	return &d
+}
+
+func (d *DataStore) Load() {
+	for _, ds := range d.dataFactories {
+		ds.Initialize()
+	}
 }
 
 func (d *DataStore) RegisterData(name string, factory DS) {
@@ -47,6 +55,10 @@ func (d *DataStore) Close() {
 
 }
 
+func (d DataStore) DoesTableExist(table string) bool {
+	return d.dataFactories[table] != nil
+}
+
 func (d DataStore) Tables(table string) DS {
 	return d.dataFactories[table]
 }
@@ -54,8 +66,8 @@ func (d DataStore) Tables(table string) DS {
 // Helper function
 func createDatastore(ds string) *badger.DB {
 	opts := badger.DefaultOptions
-	opts.Dir = "/tmp/badger/" + ds
-	opts.ValueDir = "/tmp/badger/" + ds
+	opts.Dir = settings.Settings.DataPath + ds
+	opts.ValueDir = settings.Settings.DataPath + ds
 
 	os.MkdirAll(opts.Dir, os.ModePerm)
 

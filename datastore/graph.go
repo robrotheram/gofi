@@ -41,9 +41,12 @@ type graphDataStore struct {
 
 func (u graphDataStore) New() *graphDataStore {
 	u = graphDataStore{}
+	return &u
+}
+
+func (u *graphDataStore) Initialize() {
 	u.db = createDatastore("graph")
 	u.Load()
-	return &u
 }
 
 func (u *Graph) serialize() []byte {
@@ -93,7 +96,6 @@ func (uDs *graphDataStore) Load() error {
 				return error
 			}
 			Graphs = append(Graphs, u)
-			return nil
 		}
 		return nil
 	})

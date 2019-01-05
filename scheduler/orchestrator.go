@@ -161,6 +161,7 @@ func (o *orchestrator) Size() int {
 }
 
 func (o *orchestrator) Load() {
+
 	graphs, ok := Scheduler.datastore.Tables("GRAPH").GetAll().([]Datastore.Graph)
 	if !ok {
 		return
@@ -201,7 +202,7 @@ func (o *orchestrator) Rebalance() {
 
 //Search through the list of reported workers and find one that is currently healthy and has the fewest number of processes
 func (o *orchestrator) findWorker() *Metrics {
-	metric := Health[settings.Settings.Hostname]
+	metric := GetMyHealth()
 	for _, v := range GetHealth() {
 		if (v.NumberPipelines < metric.NumberPipelines) && v.Status != UNHEALTHY {
 			metric = v

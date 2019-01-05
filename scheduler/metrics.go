@@ -2,7 +2,6 @@ package scheduler
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/robrotheram/gofi/leaderElection"
 	"github.com/robrotheram/gofi/pipeline"
 	"github.com/robrotheram/gofi/settings"
@@ -62,10 +61,14 @@ func CheckHealth() bool {
 }
 
 func GetHealth() map[string]*Metrics {
-
-	fmt.Println(Health)
-
 	return Health
+}
+
+func GetMyHealth() *Metrics {
+	if Health[settings.Settings.Hostname] != nil {
+		return Health[settings.Settings.Hostname]
+	}
+	return GetMetrics()
 }
 
 type Metrics struct {
@@ -78,9 +81,9 @@ type Metrics struct {
 	MemoryUsed      uint64                    `json:"memory_used"`
 	MemoryTotal     uint64                    `json:"memory_total"`
 	MemoryPercent   float64                   `json:"memory_percent"`
-
-	Load   float64 `json:"load"`
-	Uptime uint64  `json:"uptime"`
+	IsLeader        bool                      `json:"is_leader"`
+	Load            float64                   `json:"load"`
+	Uptime          uint64                    `json:"uptime"`
 }
 
 func GetMetrics() *Metrics {
@@ -97,7 +100,7 @@ func GetMetrics() *Metrics {
 	m.NumberPipelines = len(Scheduler.AllStatusProcess())
 	m.Stats = Scheduler.AllStatusProcess()
 	m.Status = HEALTHY
-
+	m.IsLeader = leaderElection.Election.IsLeader()
 	m.MemoryUsed = bytesToMegaBytes(met.Alloc)
 
 	if containerMemory == uint64(0) {

@@ -11,10 +11,37 @@ import (
 	"net/http"
 )
 
+func CreateGraphAPI(router *mux.Router) {
+
+	fmt.Println("Creating Graph Router")
+
+	router.HandleFunc("/graph/settings", LeaderRoute(GetPipelineParams)).Methods("GET")
+	router.HandleFunc("/graph", LeaderRoute(GetGraphs)).Methods("GET")
+	router.HandleFunc("/graph", LeaderRoute(CreateGraph)).Methods("PUT")
+
+	router.HandleFunc("/graph/{id}", LeaderRoute(GetGraph)).Methods("GET")
+	router.HandleFunc("/graph/{id}", LeaderRoute(EditGraph)).Methods("POST")
+	router.HandleFunc("/graph/{id}", LeaderRoute(DeleteGraph)).Methods("DELETE")
+
+	router.HandleFunc("/graph/{id}/status", LeaderRoute(status)).Methods("GET")
+
+	router.HandleFunc("/graph/{id}/node", LeaderRoute(CreateNode)).Methods("PUT")
+	router.HandleFunc("/graph/{id}/connection", LeaderRoute(CreateConnection)).Methods("PUT")
+
+	router.HandleFunc("/graph/{id}/node/{nid}", LeaderRoute(EditNode)).Methods("POST")
+	router.HandleFunc("/graph/{id}/connection/{cid}", LeaderRoute(EditConnection)).Methods("POST")
+
+	router.HandleFunc("/graph/{id}/node/{nid}", LeaderRoute(DeleteNode)).Methods("DELETE")
+	router.HandleFunc("/graph/{id}/connection/{cid}", LeaderRoute(DeleteConnection)).Methods("DELETE")
+
+}
+
 func GetGraphs(w http.ResponseWriter, r *http.Request) {
 	graph := datastore.Tables("GRAPH")
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(graph.GetAll())
+	if graph != nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(graph.GetAll())
+	}
 }
 
 // Display a single data
@@ -209,6 +236,7 @@ func CreateGraph(w http.ResponseWriter, r *http.Request) {
 	var graph Datastore.Graph
 	_ = json.NewDecoder(r.Body).Decode(&graph)
 	graph.Id = uuid.NewV4().String()
+	fmt.Printf("NEW GRAPH id = %s \n", graph.Id)
 	datastore.Tables("GRAPH").Save(graph)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -249,30 +277,5 @@ func GetPipelineParams(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(pipeline.PipelineParamsList)
-
-}
-
-func CreateGraphAPI(router *mux.Router) {
-
-	fmt.Println("Creating Graph Router")
-
-	router.HandleFunc("/graph/settings", LeaderRoute(GetPipelineParams)).Methods("GET")
-	router.HandleFunc("/graph", LeaderRoute(GetGraphs)).Methods("GET")
-	router.HandleFunc("/graph", LeaderRoute(CreateGraph)).Methods("PUT")
-
-	router.HandleFunc("/graph/{id}", LeaderRoute(GetGraph)).Methods("GET")
-	router.HandleFunc("/graph/{id}", LeaderRoute(EditGraph)).Methods("POST")
-	router.HandleFunc("/graph/{id}", LeaderRoute(DeleteGraph)).Methods("DELETE")
-
-	router.HandleFunc("/graph/{id}/status", LeaderRoute(status)).Methods("GET")
-
-	router.HandleFunc("/graph/{id}/node", LeaderRoute(CreateNode)).Methods("PUT")
-	router.HandleFunc("/graph/{id}/connection", LeaderRoute(CreateConnection)).Methods("PUT")
-
-	router.HandleFunc("/graph/{id}/node/{nid}", LeaderRoute(EditNode)).Methods("POST")
-	router.HandleFunc("/graph/{id}/connection/{cid}", LeaderRoute(EditConnection)).Methods("POST")
-
-	router.HandleFunc("/graph/{id}/node/{nid}", LeaderRoute(DeleteNode)).Methods("DELETE")
-	router.HandleFunc("/graph/{id}/connection/{cid}", LeaderRoute(DeleteConnection)).Methods("DELETE")
 
 }
