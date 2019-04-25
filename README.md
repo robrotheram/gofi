@@ -4,7 +4,7 @@ Note The system is very expermental, I am no way near a go expert so many things
 
 ### The features that this currently supports:
 - Leader election using ectd. The leader can then orchestrate running processes agross several worker nodes. New nodes can be dynamically added to the custer and processes not currently running will be scheduled to run to the new nodes. If a node dies their work should move onto the running nodes.
-- Ui: Custom UI that allows you to add new proccess.
+- Ui: Custom UI that allows you to add new proccess. Ui can be found here https://github.com/robrotheram/gofiUI
 
 ### Future work I like to add to the project:
 - [ ] Testing Both unit and integration
