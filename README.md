@@ -6,6 +6,15 @@ Note The system is very expermental, I am no way near a go expert so many things
 You can see a basic demo here https://robrotheram.com/gofi.mp4
 In the demo you can see 3 nodes. 1 that generates random data. The second using GRPC sends it to a jypter notebook to calculate the factors. The last node then prints it out
 
+### Screenshots
+
+![screenshot](docs/Screenshot_2019-01-04 GoFi.png)
+
+![screenshot](docs/Screenshot_2019-01-04 GoFi (1).png).
+
+![screenshot](docs/Screenshot_2019-01-04 GoFi (2).png)
+
+
 ### The features that this currently supports:
 - Leader election using ectd. The leader can then orchestrate running processes agross several worker nodes. New nodes can be dynamically added to the custer and processes not currently running will be scheduled to run to the new nodes. If a node dies their work should move onto the running nodes.
 - Ui: Custom UI that allows you to add new proccess. Ui can be found here https://github.com/robrotheram/gofiUI
