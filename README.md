@@ -2,6 +2,10 @@
 gofi is my personal experiment at building a flow/node base programming system inspired by apache nifi
 Note The system is very expermental, I am no way near a go expert so many things done in this project could be done in many better ways.
 
+#### Demo
+You can see a basic demo here https://robrotheram.com/gofi.mp4
+In the demo you can see 3 nodes. 1 that generates random data. The second using GRPC sends it to a jypter notebook to calculate the factors. The last node then prints it out
+
 ### The features that this currently supports:
 - Leader election using ectd. The leader can then orchestrate running processes agross several worker nodes. New nodes can be dynamically added to the custer and processes not currently running will be scheduled to run to the new nodes. If a node dies their work should move onto the running nodes.
 - Ui: Custom UI that allows you to add new proccess. Ui can be found here https://github.com/robrotheram/gofiUI
