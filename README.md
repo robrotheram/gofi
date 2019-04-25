@@ -8,12 +8,11 @@ In the demo you can see 3 nodes. 1 that generates random data. The second using 
 
 ### Screenshots
 
-![screenshot](docs/Screenshot_2019-01-04 GoFi.png)
+![gofi screenshot](docs/gofi-1.png)
 
-![screenshot](docs/Screenshot_2019-01-04 GoFi (1).png).
+![gofi screenshot](docs/gofi-2.png)
 
-![screenshot](docs/Screenshot_2019-01-04 GoFi (2).png)
-
+![gofi screenshot](docs/gofi-3.png)
 
 ### The features that this currently supports:
 - Leader election using ectd. The leader can then orchestrate running processes agross several worker nodes. New nodes can be dynamically added to the custer and processes not currently running will be scheduled to run to the new nodes. If a node dies their work should move onto the running nodes.
